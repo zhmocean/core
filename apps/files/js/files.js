@@ -432,7 +432,7 @@ $(document).ready(function() {
 
 	//scroll to and highlight preselected file
 	if (getURLParameter('scrollto')) {
-		FileList.scrollTo(getURLParameter('scrollto'));
+		FileList.scrollTo(decodeURIComponent(getURLParameter('scrollto')));
 	}
 });
 
