@@ -264,7 +264,10 @@ input[type="submit"].enabled {
 	top: 45px;
 }
 #content-wrapper {
-	position:absolute; height:100%; width:100%; padding-top:3.5em; padding-left:80px;
+	position: absolute;
+	height: 100%;
+	width: 100%;
+	padding-top: 45px;
 	-moz-box-sizing:border-box; box-sizing:border-box;
 }
 #leftcontent, .leftcontent {
@@ -606,33 +609,40 @@ label.infield { cursor:text !important; top:1.05em; left:.85em; }
 /* NAVIGATION ------------------------------------------------------------- */
 #navigation {
 	position: fixed;
-	top: 0;
-	bottom: 0;
 	left: 0;
-	width: 80px;
-	margin-top:45px;
+	top: 45px;
+	width: 320px;
 	z-index: 75;
-	background: #383c43 url('../img/noise.png') repeat;
+	height: 320px;
+	background:url('../img/noise.png') repeat rgba(36, 40, 47, .97);
 	overflow-y: auto;
-	overflow-x: hidden;
-	-moz-box-sizing:border-box; box-sizing:border-box;
 	/* prevent ugly selection effect on accidental selection */
 	-webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;
+	border-radius: 3px;
+}
+#navigation, #navigation * {
+	box-sizing:border-box; -moz-box-sizing:border-box;
 }
 #apps {
 	height: 100%;
 }
+#navigation li {
+	display: inline-block;
+}
+#navigation a {
+	width: 70px;
+	height: 80px;
+	display: inline-block;
+	text-align: center;
+	padding: 20px 0;
+}
 #navigation a span {
-	display: block;
+	display: inline-block;
 	text-decoration: none;
-	font-size: 11px;
+	font-size: 13px;
 	text-align: center;
 	color: #fff;
 	white-space:nowrap; overflow:hidden; text-overflow:ellipsis; /* ellipsize long app names */
-	padding-bottom: 10px;
-	/* prevent shift caused by scrollbar */
-	padding-left: 8px;
-	width: 64px;
 }
 
 	/* icon opacity and hover effect */
@@ -661,21 +671,9 @@ label.infield { cursor:text !important; top:1.05em; left:.85em; }
 		display: block;
 		width: 32px;
 		height: 32px;
-		margin-left: 24px;
-		padding: 10px 0 4px;
-	}
-	#navigation li:first-child .icon { /* special rule for Files icon as it's first */
-		padding-top: 20px;
+		margin: 0 auto;
 	}
 
-/* Apps management as sticky footer, less obtrusive in the list */
-#navigation .wrapper {
-	min-height: 100%;
-	margin: 0 auto -72px;
-}
-#apps-management, #navigation .push {
-	height: 72px;
-}
 #apps-management {
 	-ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=60)";
 	filter: alpha(opacity=60);
