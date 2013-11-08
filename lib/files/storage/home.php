@@ -38,4 +38,11 @@ class Home extends Local {
 	public function getOwner($path) {
 		return $this->user;
 	}
+
+	public function getCache($path = '') {
+		if (!isset($this->cache)) {
+			$this->cache = new \OC\Files\Cache\HomeCache($this);
+		}
+		return $this->cache;
+	}
 }

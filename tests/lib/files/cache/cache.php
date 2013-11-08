@@ -16,7 +16,7 @@ class LongId extends \OC\Files\Storage\Temporary {
 
 class Cache extends \PHPUnit_Framework_TestCase {
 	/**
-	 * @var \OC\Files\Storage\Temporary $storage;
+	 * @var \OC\Files\Storage\Temporary $storage ;
 	 */
 	private $storage;
 
@@ -122,6 +122,33 @@ class Cache extends \PHPUnit_Framework_TestCase {
 		$this->assertFalse($this->cache->inCache('folder/bar'));
 	}
 
+	public function testRootFolderSizeForNonHomeStorage() {
+		$dir1 = 'knownsize';
+		$dir2 = 'unknownsize';
+		$fileData = array();
+		$fileData[''] = array('size' => -1, 'mtime' => 20, 'mimetype' => 'httpd/unix-directory');
+		$fileData[$dir1] = array('size' => 1000, 'mtime' => 20, 'mimetype' => 'httpd/unix-directory');
+		$fileData[$dir2] = array('size' => -1, 'mtime' => 25, 'mimetype' => 'httpd/unix-directory');
+
+		$this->cache->put('', $fileData['']);
+		$this->cache->put($dir1, $fileData[$dir1]);
+		$this->cache->put($dir2, $fileData[$dir2]);
+
+		$this->assertTrue($this->cache->inCache($dir1));
+		$this->assertTrue($this->cache->inCache($dir2));
+
+		// check that root size ignored the unknown sizes
+		$this->assertEquals(-1, $this->cache->calculateFolderSize(''));
+
+		// clean up
+		$this->cache->remove('');
+		$this->cache->remove($dir1);
+		$this->cache->remove($dir2);
+
+		$this->assertFalse($this->cache->inCache($dir1));
+		$this->assertFalse($this->cache->inCache($dir2));
+	}
+
 	function testStatus() {
 		$this->assertEquals(\OC\Files\Cache\Cache::NOT_FOUND, $this->cache->getStatus('foo'));
 		$this->cache->put('foo', array('size' => -1));
@@ -209,6 +236,23 @@ class Cache extends \PHPUnit_Framework_TestCase {
 		$data = array('size' => 1000, 'mtime' => 20, 'mimetype' => 'foo/file');
 		$id = $this->cache->put('foo', $data);
 		$this->assertEquals(array($storageId, 'foo'), \OC\Files\Cache\Cache::getById($id));
+	}
+
+	function testStorageMTime() {
+		$data = array('size' => 1000, 'mtime' => 20, 'mimetype' => 'foo/file');
+		$this->cache->put('foo', $data);
+		$cachedData = $this->cache->get('foo');
+		$this->assertEquals($data['mtime'], $cachedData['storage_mtime']); //if no storage_mtime is saved, mtime should be used
+
+		$this->cache->put('foo', array('storage_mtime' => 30)); //when setting storage_mtime, mtime is also set
+		$cachedData = $this->cache->get('foo');
+		$this->assertEquals(30, $cachedData['storage_mtime']);
+		$this->assertEquals(30, $cachedData['mtime']);
+
+		$this->cache->put('foo', array('mtime' => 25)); //setting mtime does not change storage_mtime
+		$cachedData = $this->cache->get('foo');
+		$this->assertEquals(30, $cachedData['storage_mtime']);
+		$this->assertEquals(25, $cachedData['mtime']);
 	}
 
 	function testLongId() {
