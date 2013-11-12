@@ -14,29 +14,31 @@ namespace OC\Files\Storage;
 class Home extends Local {
 
 	/**
-	 * @var string $user
+	 * @var string
+	 */
+	protected $id;
+
+	/**
+	 * @var \OC\User\User $user
 	 */
 	protected $user;
 
 	public function __construct($arguments) {
 		$this->user = $arguments['user'];
-		$datadir = $arguments['datadir'];
+		$datadir = $this->user->getHome();
+		if (isset($arguments['legacy']) && $arguments['legacy']) {
+			// legacy home id (<= 5.0.12)
+			$this->id = 'local::' . $datadir . '/';
+		}
+		else {
+		    $this->id = 'home::' . $this->user->getUID();
+		}
 
 		parent::__construct(array('datadir' => $datadir));
 	}
 
 	public function getId() {
-		return 'home::' . $this->user;
-	}
-	
-	/**
-	 * get the owner of a path
-	 *
-	 * @param string $path The path to get the owner
-	 * @return string uid or false
-	 */
-	public function getOwner($path) {
-		return $this->user;
+		return $this->id;
 	}
 
 	public function getCache($path = '') {
