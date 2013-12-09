@@ -1,3 +1,5 @@
+<?php $_['appNavigation']->printPage(); ?>
+<div id="app-content">
 <div id="controls">
 	<div id="file_action_panel"></div>
 </div>
@@ -43,3 +45,4 @@
 	<tfoot>
 	</tfoot>
 </table>
+</div>
