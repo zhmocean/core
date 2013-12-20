@@ -458,7 +458,7 @@ class File extends \PHPUnit_Framework_TestCase {
 		/**
 		 * @var \OC\Files\Storage\Storage | \PHPUnit_Framework_MockObject_MockObject $storage
 		 */
-		$storage = $this->getMock('\OC\Files\Storage\Local');
+		$storage = $this->getMock('\OC\Files\Storage\Temporary');
 
 		$root->expects($this->never())
 			->method('getMount');
@@ -618,7 +618,7 @@ class File extends \PHPUnit_Framework_TestCase {
 		/**
 		 * @var \OC\Files\Storage\Storage | \PHPUnit_Framework_MockObject_MockObject $storage
 		 */
-		$storage = $this->getMock('\OC\Files\Storage\Local');
+		$storage = $this->getMock('\OC\Files\Storage\Temporary');
 
 		$storage->expects($this->never())
 			->method('rename');

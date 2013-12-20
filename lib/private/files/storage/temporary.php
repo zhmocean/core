@@ -12,7 +12,7 @@ namespace OC\Files\Storage;
  * local storage backend in temporary folder for testing purpose
  */
 class Temporary extends Local{
-	public function __construct($arguments) {
+	public function __construct($arguments = array()) {
 		parent::__construct(array('datadir' => \OC_Helper::tmpFolder()));
 	}
 

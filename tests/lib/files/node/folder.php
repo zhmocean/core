@@ -139,7 +139,7 @@ class Folder extends \PHPUnit_Framework_TestCase {
 		/**
 		 * @var \OC\Files\Storage\Storage | \PHPUnit_Framework_MockObject_MockObject $storage
 		 */
-		$storage = $this->getMock('\OC\Files\Storage\Local');
+		$storage = $this->getMock('\OC\Files\Storage\Temporary');
 
 		$cache = $this->getMock('\OC\Files\Cache\Cache', array(), array(''));
 		$cache->expects($this->any())
@@ -377,7 +377,7 @@ class Folder extends \PHPUnit_Framework_TestCase {
 		$root->expects($this->any())
 			->method('getUser')
 			->will($this->returnValue($this->user));
-		$storage = $this->getMock('\OC\Files\Storage\Local');
+		$storage = $this->getMock('\OC\Files\Storage\Temporary');
 		$cache = $this->getMock('\OC\Files\Cache\Cache', array(), array(''));
 
 		$storage->expects($this->once())
@@ -416,10 +416,10 @@ class Folder extends \PHPUnit_Framework_TestCase {
 		$root->expects($this->any())
 			->method('getUser')
 			->will($this->returnValue($this->user));
-		$storage = $this->getMock('\OC\Files\Storage\Local');
+		$storage = $this->getMock('\OC\Files\Storage\Temporary');
 		$cache = $this->getMock('\OC\Files\Cache\Cache', array(), array(''));
 		$subCache = $this->getMock('\OC\Files\Cache\Cache', array(), array(''));
-		$subStorage = $this->getMock('\OC\Files\Storage\Local');
+		$subStorage = $this->getMock('\OC\Files\Storage\Temporary');
 		$subMount = $this->getMock('\OC\Files\Mount\Mount', array(), array(null, ''));
 
 		$subMount->expects($this->once())

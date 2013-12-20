@@ -24,7 +24,7 @@ class Root extends \PHPUnit_Framework_TestCase {
 		/**
 		 * @var \OC\Files\Storage\Storage $storage
 		 */
-		$storage = $this->getMock('\OC\Files\Storage\Local');
+		$storage = $this->getMock('\OC\Files\Storage\Temporary');
 		/**
 		 * @var \OC\Files\View | \PHPUnit_Framework_MockObject_MockObject $view
 		 */
@@ -60,7 +60,7 @@ class Root extends \PHPUnit_Framework_TestCase {
 		/**
 		 * @var \OC\Files\Storage\Storage $storage
 		 */
-		$storage = $this->getMock('\OC\Files\Storage\Local');
+		$storage = $this->getMock('\OC\Files\Storage\Temporary');
 		/**
 		 * @var \OC\Files\View | \PHPUnit_Framework_MockObject_MockObject $view
 		 */
