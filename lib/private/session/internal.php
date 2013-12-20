@@ -23,11 +23,22 @@ class Internal extends Memory {
 			throw new \Exception('Failed to start session');
 		}
 		$this->data = $_SESSION;
+		session_write_close();
 	}
 
 	public function __destruct() {
 		$_SESSION = array_merge($_SESSION, $this->data);
 		session_write_close();
+	}
+
+	/**
+	 * @param string $key
+	 * @param mixed $value
+	 */
+	public function set($key, $value) {
+		session_start();
+		$_SESSION[$key] = $value;
+		$this->data[$key] = $value;
 	}
 
 	/**
