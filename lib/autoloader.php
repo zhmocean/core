@@ -17,6 +17,7 @@ class Autoloader {
 
 	/**
 	 * Optional low-latency memory cache for class to path mapping.
+	 *
 	 * @var \OC\Memcache\Cache
 	 */
 	protected $memoryCache;
@@ -90,7 +91,7 @@ class Autoloader {
 			list(, $app, $rest) = explode('\\', $class, 3);
 			$app = strtolower($app);
 			foreach (\OC::$APPSROOTS as $appDir) {
-				if (stream_resolve_include_path($appDir['path'] . '/' . $app)) {
+				if (file_exists($appDir['path'] . '/' . $app)) {
 					$paths[] = $appDir['path'] . '/' . $app . '/' . strtolower(str_replace('\\', '/', $rest) . '.php');
 					// If not found in the root of the app directory, insert '/lib' after app id and try again.
 					$paths[] = $appDir['path'] . '/' . $app . '/lib/' . strtolower(str_replace('\\', '/', $rest) . '.php');
