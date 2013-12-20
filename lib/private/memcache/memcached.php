@@ -71,6 +71,7 @@ class Memcached extends Cache {
 	}
 
 	static public function isAvailable() {
+		return false;
 		return extension_loaded('memcached');
 	}
 }

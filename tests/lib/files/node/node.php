@@ -130,7 +130,7 @@ class Node extends \PHPUnit_Framework_TestCase {
 		/**
 		 * @var \OC\Files\Storage\Storage | \PHPUnit_Framework_MockObject_MockObject $storage
 		 */
-		$storage = $this->getMock('\OC\Files\Storage\Storage');
+		$storage = $this->getMock('\OC\Files\Storage\Local');
 
 		$view->expects($this->once())
 			->method('filemtime')
@@ -154,7 +154,7 @@ class Node extends \PHPUnit_Framework_TestCase {
 		/**
 		 * @var \OC\Files\Storage\Storage | \PHPUnit_Framework_MockObject_MockObject $storage
 		 */
-		$storage = $this->getMock('\OC\Files\Storage\Storage');
+		$storage = $this->getMock('\OC\Files\Storage\Local');
 
 		$view->expects($this->once())
 			->method('resolvePath')
@@ -194,7 +194,7 @@ class Node extends \PHPUnit_Framework_TestCase {
 		/**
 		 * @var \OC\Files\Storage\Storage | \PHPUnit_Framework_MockObject_MockObject $storage
 		 */
-		$storage = $this->getMock('\OC\Files\Storage\Storage');
+		$storage = $this->getMock('\OC\Files\Storage\Local');
 
 		$view->expects($this->once())
 			->method('resolvePath')
