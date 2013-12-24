@@ -52,5 +52,5 @@ usersmanagement.factory('GroupService',
 				method: 'GET'
 			});
 		}
-	}
+	};
 }]);

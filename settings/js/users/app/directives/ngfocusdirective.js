@@ -21,11 +21,11 @@
  
 usersmanagement.directive('ngFocus', 
 	['$parse', function($timeout) {
-    	return function( scope, element, attrs ) {
-        	scope.$watch(attrs.ngFocus, function (newVal, oldVal) {
-            	if (newVal) {
-            		element[0].focus();
-            	}
+		return function( scope, element, attrs ) {
+			scope.$watch(attrs.ngFocus, function (newVal, oldVal) {
+				if (newVal) {
+					element[0].focus();
+				}
 			});
 		};
 	}

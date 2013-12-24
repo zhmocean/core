@@ -33,7 +33,7 @@ usersmanagement.controller('grouplistController',
 			$scope.deletegroup = function(group) {
 				$scope.groups.splice($scope.groups.indexOf(group), 1);
 				GroupService.removegroup(group);
-			}
+			};
 		});
 	}
 ]);

@@ -30,7 +30,6 @@ module.exports = function(grunt) {
 	grunt.loadNpmTasks('grunt-contrib-jshint');
 	grunt.loadNpmTasks('grunt-wrap');
 	grunt.loadNpmTasks('grunt-karma');
-	grunt.loadNpmTasks('grunt-phpunit');
 
 
 	grunt.initConfig({
@@ -38,7 +37,7 @@ module.exports = function(grunt) {
 		meta: {
 			pkg: grunt.file.readJSON('package.json'),
 			version: '<%= meta.pkg.version %>',
-			production: '../js/public/'
+			production: '../js/users/public/'
 		},
 
 		concat: {
@@ -48,9 +47,8 @@ module.exports = function(grunt) {
 			},
 			dist: {
 				src: [
-					'../js/polyfills/**/*.js',
-					'../js/config/app.js',
-					'../js/app/**/*.js'
+					'../js/users/config/app.js',
+					'../js/users/app/**/*.js'
 				],
 				dest: '<%= meta.production %>app.js'
 			}
@@ -59,7 +57,7 @@ module.exports = function(grunt) {
 		wrap: {
 			app: {
 				src: ['<%= meta.production %>app.js'],
-				dest: '<%= meta.production %>',
+				dest: '<%= meta.production %>app.js',
 				wrapper: [
 					'(function(angular, $, oc_requesttoken, undefined){\n\n\'use strict\';\n\n',
 					'\n})(angular, jQuery, oc_requesttoken);'
@@ -70,9 +68,9 @@ module.exports = function(grunt) {
 		jshint: {
 			files: [
 				'Gruntfile.js',
-				'../js/app/**/*.js',
-				'../js/config/*.js',
-				'../tests/js/unit/**/*.js'
+				'../js/users/app/**/*.js',
+				'../js/users/config/*.js',
+				'../tests/users/js/unit/**/*.js'
 			],
 			options: {
 				// options here to override JSHint defaults
@@ -87,33 +85,18 @@ module.exports = function(grunt) {
 			// and wrap tasks if something changed
 			concat: {
 				files: [
-					'../js/polyfills/**/*.js',
-					'../js/app/**/*.js',
-					'../js/config/*.js'
+					'../js/users/app/**/*.js',
+					'../js/users/config/*.js'
 				],
 				tasks: ['build']
-			},
-			phpunit: {
-				files: '../**/*.php',
-				tasks: ['phpunit']
 			}
 		},
-
-		phpunit: {
-			classes: {
-				dir: '../tests/php/unit'
-			},
-			options: {
-				colors: true
-			}
-		},
-
 		karma: {
 			unit: {
-				configFile: '../tests/js/config/karma.js'
+				configFile: '../tests/users/js/config/karma.js'
 			},
 			continuous: {
-				configFile: '../tests/js/config/karma.js',
+				configFile: '../tests/users/js/config/karma.js',
 				singleRun: true,
 				browsers: ['PhantomJS'],
 				reporters: ['progress']

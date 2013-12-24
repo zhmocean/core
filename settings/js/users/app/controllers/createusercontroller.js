@@ -31,6 +31,6 @@ usersmanagement.controller('addUserController',
 		var selectedgroup = $scope.addGroup;
 		$scope.saveuser = function(newuser,password,selectedgroup) {
 			UserService.createuser(newuser,password,selectedgroup);
-		}
+		};
 	}
 ]);

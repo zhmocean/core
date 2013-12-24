@@ -38,11 +38,11 @@ usersmanagement.controller('setQuotaController',
 					var customVal = $scope.customVal + ' GB';
 					QuotaService.setDefaultQuota(customVal);
 					$scope.customValInput = false;
-				}
+				};
 			}
 			else {
 				QuotaService.setDefaultQuota(defaultquota.quotaval);
 			}
-		}
+		};
 	}
 ]);

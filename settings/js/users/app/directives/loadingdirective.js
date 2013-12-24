@@ -27,7 +27,7 @@ usersmanagement.directive('loading',
 			restrict: 'E',
 			replace: true,
 			template:"<div class='loading'></div>",
-	    	link: function($scope, element, attr) {
+			link: function($scope, element, attr) {
 				$scope.$watch('loading', function(val) {
 					if (val) {
 						$(element).show();
@@ -36,7 +36,7 @@ usersmanagement.directive('loading',
 						$(element).hide();
 					}
 				});
-			}		
-		}
+			}
+		};
 	}]
 );

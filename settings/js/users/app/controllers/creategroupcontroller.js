@@ -28,6 +28,6 @@ usersmanagement.controller('creategroupController',
 			$scope.showgroupinput = false;
 			$scope.showbutton = true;
 			$scope.newgroup = '';
-		}
+		};
 	}
 ]);

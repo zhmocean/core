@@ -25,6 +25,6 @@ usersmanagement.directive('avatar',
 			template: "<div class='avatardiv'></div>",
 			replace: true
 			// Get the Avatar Plugin here once it gets into master.
-		}
+		};
 	}]
 );

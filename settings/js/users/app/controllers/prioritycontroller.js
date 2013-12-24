@@ -28,11 +28,11 @@ usersmanagement.controller('prioritygroupController',
 		/*Returns everyone. */
 		$scope.getEveryone = function() {
 			
-		}
+		};
 		
 		/* Returns the list of Subadmins on the Userlist */
 		$scope.getSubadmins = function() {
 			
-		}
+		};
 	}
 ]);

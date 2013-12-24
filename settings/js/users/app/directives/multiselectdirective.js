@@ -22,16 +22,16 @@
 usersmanagement.directive('multiselectUsers', [function() {
 	return function(scope, element, attributes) {
 		element = $(element[0]); // To use jQuery.
-        element.multiSelect({
+		element.multiSelect({
 			title: 'Groups..',
 			createText: scope.label,
 			selectedFirst: true,
-            sort: true,
+			sort: true,
 			minWidth: 100,
 			checked: scope.checked,
 			oncheck: scope.checkHandeler,
 			onuncheck: scope.checkHandeler
 			//createCallback: addGroup,
-        });
-	}
+		});
+	};
 }]);

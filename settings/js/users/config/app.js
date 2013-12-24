@@ -25,7 +25,7 @@ var usersmanagement = angular.module('usersmanagement', ['ngResource']).
 config(['$httpProvider','$routeProvider', '$windowProvider', '$provide',
 	function($httpProvider,$routeProvider, $windowProvider, $provide) {
 
-		$httpProvider.defaults.headers.common['requesttoken'] = oc_requesttoken;
+		$httpProvider.defaults.headers.common.requesttoken = oc_requesttoken;
 
 		$routeProvider
 		.when('/group/:groupId', {
@@ -36,4 +36,4 @@ config(['$httpProvider','$routeProvider', '$windowProvider', '$provide',
 			redirectTo : '/group/'
 		});
 	}
-]));
+]);
