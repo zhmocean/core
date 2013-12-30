@@ -60,6 +60,9 @@ class Quota extends \Test\Files\Storage\Storage {
 	}
 
 	public function testReturnRegularStreamOnRead(){
+		if (defined('HHVM_VERSION')) {
+			$this->markTestSkipped('stream_get_meta_data doesn\'t seem to be properly implemented on hhvm');
+		}
 		$instance = $this->getLimitedStorage(9);
 
 		// create test file first
@@ -74,6 +77,9 @@ class Quota extends \Test\Files\Storage\Storage {
 	}
 
 	public function testReturnQuotaStreamOnWrite(){
+		if (defined('HHVM_VERSION')) {
+			$this->markTestSkipped('stream_get_meta_data doesn\'t seem to be properly implemented on hhvm');
+		}
 		$instance = $this->getLimitedStorage(9);
 		$stream = $instance->fopen('foo', 'w+');
 		$meta = stream_get_meta_data($stream);
