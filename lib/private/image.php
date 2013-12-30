@@ -40,9 +40,12 @@ class OC_Image {
 	static public function getMimeTypeForFile($filePath) {
 		// exif_imagetype throws "read error!" if file is less than 12 byte
 		if (filesize($filePath) > 11) {
-			$imageType = exif_imagetype($filePath);
-		}
-		else {
+			try {
+				$imageType = exif_imagetype($filePath);
+			} catch(Exception $e) {
+				return null;
+			}
+		} else {
 			$imageType = false;
 		}
 		return $imageType ? image_type_to_mime_type($imageType) : '';

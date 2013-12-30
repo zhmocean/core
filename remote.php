@@ -1,6 +1,10 @@
 <?php
 $RUNTIME_NOAPPS = true;
 
+//print_r($_SERVER);
+//print_r(getallheaders());
+//die();
+
 try {
 
 	require_once 'lib/base.php';
