@@ -48,7 +48,9 @@ class APC extends Cache {
 	}
 
 	static public function isAvailable() {
-		if (!extension_loaded('apc')) {
+		if (defined('HHVM_VERSION')) { // HHVM's implementation of apc has problems with apc_cache_info
+			return false;
+		}if (!extension_loaded('apc')) {
 			return false;
 		} elseif (!ini_get('apc.enable_cli') && \OC::$CLI) {
 			return false;
