@@ -173,21 +173,21 @@ class OC_App{
 		if(!$forceRefresh && !empty(self::$enabledAppsCache)) {
 			return self::$enabledAppsCache;
 		}
-		$apps=array('files');
-		$sql = 'SELECT `appid` FROM `*PREFIX*appconfig`'
-			. ' WHERE `configkey` = \'enabled\' AND `configvalue`=\'yes\''
-			. ' ORDER BY `appid`';
-		if (OC_Config::getValue( 'dbtype', 'sqlite' ) === 'oci') {
-			//FIXME oracle hack: need to explicitly cast CLOB to CHAR for comparison
-			$sql = 'SELECT `appid` FROM `*PREFIX*appconfig`'
-			. ' WHERE `configkey` = \'enabled\' AND to_char(`configvalue`)=\'yes\''
-			. ' ORDER BY `appid`';
-		}
-		$result = OC_DB::executeAudited($sql);
-		while($row=$result->fetchRow()) {
-			if(array_search($row['appid'], $apps)===false) {
-				$apps[]=$row['appid'];
+		$apps = array('files');
+		$sql = 'SELECT `appid`, `configvalue` FROM `*PREFIX*appconfig`'
+			.' WHERE `configkey` = \'enabled\' ORDER BY `appid`';
+		/**
+		 * @var OC_DB_StatementWrapper $result
+		 */
+		try{
+			$result = OC_DB::executeAudited($sql);
+			while($row = $result->fetchRow()) {
+				if($row['configvalue'] === 'yes' and array_search($row['appid'], $apps)===false) {
+					$apps[] = $row['appid'];
+				}
 			}
+		} catch(DatabaseException $e) {
+
 		}
 		self::$enabledAppsCache = $apps;
 		return $apps;
