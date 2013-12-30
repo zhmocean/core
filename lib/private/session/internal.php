@@ -36,7 +36,7 @@ class Internal extends Memory {
 	 * @param mixed $value
 	 */
 	public function set($key, $value) {
-		session_start();
+		@session_start();
 		$_SESSION[$key] = $value;
 		$this->data[$key] = $value;
 	}
