@@ -28,7 +28,6 @@ require_once 'public/constants.php';
  * OC_autoload!
  */
 class OC {
-	private static $dbCloseHelper;
 	/**
 	 * Associative array for autoloading. classname => filename
 	 */
