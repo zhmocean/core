@@ -24,18 +24,18 @@
 			<!-- the following div ensures that the spinner is always inside the #message div -->
 			<div style="clear: both;"></div>
 		</p>
-		<p class="infield grouptop">
-			<input type="text" name="user" id="user" placeholder=""
+		<p class="grouptop">
+			<input type="text" name="user" id="user" placeholder="<?php p($l->t('Username')); ?>"
 				   value="<?php p($_['username']); ?>"<?php p($_['user_autofocus'] ? ' autofocus' : ''); ?>
 				   autocomplete="on" required/>
-			<label for="user" class="infield"><?php p($l->t('Username')); ?></label>
+			<label for="user" class="infield"></label>
 			<img class="svg" src="<?php print_unescaped(image_path('', 'actions/user.svg')); ?>" alt=""/>
 		</p>
 
-		<p class="infield groupbottom">
-			<input type="password" name="password" id="password" value="" placeholder=""
+		<p class="groupbottom">
+			<input type="password" name="password" id="password" value="" placeholder="<?php p($l->t('Password')); ?>"
 				   required<?php p($_['user_autofocus'] ? '' : ' autofocus'); ?> />
-			<label for="password" class="infield"><?php p($l->t('Password')); ?></label>
+			<label for="password" class="infield"></label>
 			<img class="svg" id="password-icon" src="<?php print_unescaped(image_path('', 'actions/password.svg')); ?>" alt=""/>
 		</p>
 

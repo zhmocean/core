@@ -763,11 +763,6 @@ $(document).ready(function(){
 	setShowPassword($('#pass2'), $('label[for=personal-show]'));
 	setShowPassword($('#dbpass'), $('label[for=dbpassword]'));
 
-	//use infield labels
-	$("label.infield").inFieldLabels({
-		pollDuration: 100
-	});
-
 	var checkShowCredentials = function() {
 		var empty = false;
 		$('input#user, input#password').each(function() {
