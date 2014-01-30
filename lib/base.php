@@ -124,6 +124,9 @@ class OC {
 		}
 
 		OC::$WEBROOT = substr($scriptName, 0, strlen($scriptName) - strlen(OC::$SUBURI));
+		if (strlen($scriptName) - strlen(OC::$SUBURI) < 0) {
+			OC::$WEBROOT = '';
+		}
 
 		if (OC::$WEBROOT != '' and OC::$WEBROOT[0] !== '/') {
 			OC::$WEBROOT = '/' . OC::$WEBROOT;
