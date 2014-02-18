@@ -77,6 +77,7 @@ foreach($accessibleusers as $uid => $displayName) {
 		'isQuotaUserDefined' => $isQuotaUserDefined,
 		'subadmin' => OC_SubAdmin::getSubAdminsGroups($uid),
 		'storageLocation' => $user->getHome(),
+		'lastLogin' => $user->getLastLogin(),
 	);
 }
 

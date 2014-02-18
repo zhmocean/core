@@ -828,6 +828,7 @@ class OC {
 
 		// if return is true we are logged in -> redirect to the default page
 		if ($return === true) {
+			OC_User::getManager()->get(OC_User::getUser())->updateLastLogin();
 			$_REQUEST['redirect_url'] = \OC_Request::requestUri();
 			OC_Util::redirectToDefaultPage();
 			exit;
@@ -865,6 +866,7 @@ class OC {
 				OC_User::setMagicInCookie($_COOKIE['oc_username'], $token);
 				// login
 				OC_User::setUserId($_COOKIE['oc_username']);
+				OC_User::getManager()->get(OC_User::getUser())->updateLastLogin();
 				OC_Util::redirectToDefaultPage();
 				// doesn't return
 			}
@@ -895,6 +897,7 @@ class OC {
 			}
 
 			$userid = OC_User::getUser();
+			OC_User::getManager()->get($userid)->updateLastLogin();
 			self::cleanupLoginTokens($userid);
 			if (!empty($_POST["remember_login"])) {
 				if (defined("DEBUG") && DEBUG) {
@@ -921,6 +924,7 @@ class OC {
 		OC_App::loadApps(array('authentication'));
 		if (OC_User::login($_SERVER["PHP_AUTH_USER"], $_SERVER["PHP_AUTH_PW"])) {
 			//OC_Log::write('core',"Logged in with HTTP Authentication", OC_Log::DEBUG);
+			OC_User::getManager()->get(OC_User::getUser())->updateLastLogin();
 			OC_User::unsetMagicInCookie();
 			$_SERVER['HTTP_REQUESTTOKEN'] = OC_Util::callRegister();
 		}
