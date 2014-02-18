@@ -18,6 +18,7 @@ OC_App::setActiveNavigationEntry( 'core_users' );
 
 $users = array();
 $groups = array();
+$userManager = \OC_User::getManager();
 
 if (isset($_GET['offset'])) {
 	$offset = $_GET['offset'];
@@ -67,6 +68,7 @@ foreach($accessibleusers as $uid => $displayName) {
 		$name = $name . ' ('.$uid.')';
 	}
 
+	$user = $userManager->get($uid);
 	$users[] = array(
 		"name" => $uid,
 		"displayName" => $displayName,
@@ -74,6 +76,7 @@ foreach($accessibleusers as $uid => $displayName) {
 		'quota' => $quota,
 		'isQuotaUserDefined' => $isQuotaUserDefined,
 		'subadmin' => OC_SubAdmin::getSubAdminsGroups($uid),
+		'storageLocation' => $user->getHome(),
 	);
 }
 
