@@ -22,19 +22,19 @@ class OC_Response {
 	*/
 	static public function enableCaching($cache_time = null) {
 		if (is_numeric($cache_time)) {
-			header('Pragma: public');// enable caching in IE
+			self::addHeader('Pragma: public');// enable caching in IE
 			if ($cache_time > 0) {
 				self::setExpiresHeader('PT'.$cache_time.'S');
-				header('Cache-Control: max-age='.$cache_time.', must-revalidate');
+				self::addHeader('Cache-Control: max-age='.$cache_time.', must-revalidate');
 			}
 			else {
 				self::setExpiresHeader(0);
-				header("Cache-Control: must-revalidate, post-check=0, pre-check=0");
+				self::addHeader("Cache-Control: must-revalidate, post-check=0, pre-check=0");
 			}
 		}
 		else {
-			header('Cache-Control: cache');
-			header('Pragma: cache');
+			self::addHeader('Cache-Control: cache');
+			self::addHeader('Pragma: cache');
 		}
 
 	}
@@ -75,7 +75,7 @@ class OC_Response {
 				$status = $status . ' Internal Server Error';
 				break;
 		}
-		header($protocol.' '.$status);
+		self::addHeader($protocol.' '.$status);
 	}
 
 	/**
@@ -84,7 +84,7 @@ class OC_Response {
 	*/
 	static public function redirect($location) {
 		self::setStatus(self::STATUS_TEMPORARY_REDIRECT);
-		header('Location: '.$location);
+		self::addHeader('Location: '.$location);
 	}
 
 	/**
@@ -103,7 +103,7 @@ class OC_Response {
 			$expires->setTimezone(new DateTimeZone('GMT'));
 			$expires = $expires->format(DateTime::RFC2822);
 		}
-		header('Expires: '.$expires);
+		self::addHeader('Expires: '.$expires);
 	}
 
 	/**
@@ -121,7 +121,7 @@ class OC_Response {
 			self::setStatus(self::STATUS_NOT_MODIFIED);
 			exit;
 		}
-		header('ETag: '.$etag);
+		self::addHeader('ETag: '.$etag);
 	}
 
 	/**
@@ -144,7 +144,7 @@ class OC_Response {
 			self::setStatus(self::STATUS_NOT_MODIFIED);
 			exit;
 		}
-		header('Last-Modified: '.$lastModified);
+		self::addHeader('Last-Modified: '.$lastModified);
 	}
 
 	/**
@@ -154,10 +154,24 @@ class OC_Response {
 	 */
 	static public function setContentDispositionHeader( $filename, $type = 'attachment' ) {
 		if (OC_Request::isUserAgent(array(OC_Request::USER_AGENT_IE, OC_Request::USER_AGENT_ANDROID_MOBILE_CHROME))) {
-			header( 'Content-Disposition: ' . rawurlencode($type) . '; filename="' . rawurlencode( $filename ) . '"' );
+			self::addHeader( 'Content-Disposition: ' . rawurlencode($type) . '; filename="' . rawurlencode( $filename ) . '"' );
 		} else {
-			header( 'Content-Disposition: ' . rawurlencode($type) . '; filename*=UTF-8\'\'' . rawurlencode( $filename )
+			self::addHeader( 'Content-Disposition: ' . rawurlencode($type) . '; filename*=UTF-8\'\'' . rawurlencode( $filename )
 												 . '; filename="' . rawurlencode( $filename ) . '"' );
+		}
+	}
+
+	/**
+	 * Add header
+	 * @param string $name
+	 * @param string $value
+	 */
+	static public function addHeader($header) {
+		if (!defined('PHPUNIT_RUN')) {
+			header($header);
+		}
+		else {
+			addTestHeader($header);
 		}
 	}
 
@@ -171,7 +185,7 @@ class OC_Response {
 			self::setLastModifiedHeader(filemtime($filepath));
 			self::setETagHeader(md5_file($filepath));
 
-			header('Content-Length: '.filesize($filepath));
+			self::addHeader('Content-Length: '.filesize($filepath));
 			fpassthru($fp);
 		}
 		else {

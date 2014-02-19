@@ -113,21 +113,23 @@ class OC_Files {
 				$xsendfile = false;
 			}
 		}
-		OC_Util::obEnd();
+		if (!defined('PHPUNIT_RUN')) {
+			OC_Util::obEnd();
+		}
 		if ($zip or \OC\Files\Filesystem::isReadable($filename)) {
 			OC_Response::setContentDispositionHeader($name, 'attachment');
-			header('Content-Transfer-Encoding: binary');
+			OC_Response::addHeader('Content-Transfer-Encoding: binary');
 			OC_Response::disableCaching();
 			if ($zip) {
 				ini_set('zlib.output_compression', 'off');
-				header('Content-Type: application/zip');
-				header('Content-Length: ' . filesize($filename));
+				OC_Response::addHeader('Content-Type: application/zip');
+				OC_Response::addHeader('Content-Length: ' . filesize($filename));
 				self::addSendfileHeader($filename);
 			}else{
 				$filesize = \OC\Files\Filesystem::filesize($filename);
-				header('Content-Type: '.\OC\Files\Filesystem::getMimeType($filename));
+				OC_Response::addHeader('Content-Type: '.\OC\Files\Filesystem::getMimeType($filename));
 				if ($filesize > -1) {
-					header("Content-Length: ".$filesize);
+					OC_Response::addHeader("Content-Length: ".$filesize);
 				}
 				if ($xsendfile) {
 					list($storage) = \OC\Files\Filesystem::resolvePath(\OC\Files\Filesystem::getView()->getAbsolutePath($filename));
@@ -140,12 +142,12 @@ class OC_Files {
 				}
 			}
 		} elseif ($zip or !\OC\Files\Filesystem::file_exists($filename)) {
-			header("HTTP/1.0 404 Not Found");
+			OC_Response::addHeader("HTTP/1.0 404 Not Found");
 			$tmpl = new OC_Template('', '404', 'guest');
 			$tmpl->assign('file', $name);
 			$tmpl->printPage();
 		} else {
-			header("HTTP/1.0 403 Forbidden");
+			OC_Response::addHeader("HTTP/1.0 403 Forbidden");
 			die('403 Forbidden');
 		}
 		if($only_header) {
@@ -175,7 +177,7 @@ class OC_Files {
 
 	private static function addSendfileHeader($filename) {
 		if (isset($_SERVER['MOD_X_SENDFILE_ENABLED'])) {
-			header("X-Sendfile: " . $filename);
+			OC_Response::addHeader("X-Sendfile: " . $filename);
  		}
  		if (isset($_SERVER['MOD_X_SENDFILE2_ENABLED'])) {
 			if (isset($_SERVER['HTTP_RANGE']) && 
@@ -184,16 +186,16 @@ class OC_Files {
  				if ($range[2] == "") {
  					$range[2] = $filelength - 1;
  				}
- 				header("Content-Range: bytes $range[1]-$range[2]/" . $filelength);
- 				header("HTTP/1.1 206 Partial content");
- 				header("X-Sendfile2: " . str_replace(",", "%2c", rawurlencode($filename)) . " $range[1]-$range[2]");
+ 				OC_Response::addHeader("Content-Range: bytes $range[1]-$range[2]/" . $filelength);
+ 				OC_Response::addHeader("HTTP/1.1 206 Partial content");
+ 				OC_Response::addHeader("X-Sendfile2: " . str_replace(",", "%2c", rawurlencode($filename)) . " $range[1]-$range[2]");
  			} else {
- 				header("X-Sendfile: " . $filename);
+ 				OC_Response::addHeader("X-Sendfile: " . $filename);
  			}
 		}
 		
 		if (isset($_SERVER['MOD_X_ACCEL_REDIRECT_ENABLED'])) {
-			header("X-Accel-Redirect: " . $filename);
+			OC_Response::addHeader("X-Accel-Redirect: " . $filename);
 		}
 	}
 
@@ -224,7 +226,7 @@ class OC_Files {
 	static function validateZipDownload($dir, $files) {
 		if (!OC_Config::getValue('allowZipDownload', true)) {
 			$l = OC_L10N::get('lib');
-			header("HTTP/1.0 409 Conflict");
+			OC_Response::addHeader("HTTP/1.0 409 Conflict");
 			OC_Template::printErrorPage(
 					$l->t('ZIP download is turned off.'),
 					$l->t('Files need to be downloaded one by one.')
@@ -251,7 +253,7 @@ class OC_Files {
 			}
 			if ($totalsize > $zipLimit) {
 				$l = OC_L10N::get('lib');
-				header("HTTP/1.0 409 Conflict");
+				OC_Response::addHeader("HTTP/1.0 409 Conflict");
 				OC_Template::printErrorPage(
 						$l->t('Selected files too large to generate zip file.'),
 						$l->t('Please download the files separately in smaller chunks or kindly ask your administrator.')
