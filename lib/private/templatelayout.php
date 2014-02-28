@@ -44,7 +44,7 @@ class OC_TemplateLayout extends OC_Template {
 			}
 
 			// Add navigation entry
-			$this->assign( 'application', '', false );
+			$this->assign( 'application', '');
 			$navigation = OC_App::getNavigation();
 			$this->assign( 'navigation', $navigation);
 			$this->assign( 'settingsnavigation', OC_App::getSettingsNavigation());
@@ -77,7 +77,7 @@ class OC_TemplateLayout extends OC_Template {
 
 			// Add the js files
 			$jsfiles = self::findJavascriptFiles(OC_Util::$scripts);
-			$this->assign('jsfiles', array(), false);
+			$this->assign('jsfiles', array());
 			if (OC_Config::getValue('installed', false) && $renderas!='error') {
 				$this->append( 'jsfiles', OC_Helper::linkToRoute('js_config') . $versionParameter);
 			}
