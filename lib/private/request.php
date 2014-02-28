@@ -7,14 +7,31 @@
  */
 
 class OC_Request {
+
+	const USER_AGENT_IE = '/MSIE/';
+	// Android Chrome user agent: https://developers.google.com/chrome/mobile/docs/user-agent
+	const USER_AGENT_ANDROID_MOBILE_CHROME = '#Android.*Chrome/[.0-9]*#';
+	const USER_AGENT_FREEBOX = '#^Mozilla/5\.0$#';
+
 	/**
 	 * @brief Check overwrite condition
+	 * @param string $type
 	 * @returns bool
 	 */
 	private static function isOverwriteCondition($type = '') {
 		$regex = '/' . OC_Config::getValue('overwritecondaddr', '')  . '/';
 		return $regex === '//' or preg_match($regex, $_SERVER['REMOTE_ADDR']) === 1
 			or ($type !== 'protocol' and OC_Config::getValue('forcessl', false));
+	}
+
+	/**
+	 * @brief Checks whether a domain is considered as trusted. This is used to prevent Host Header Poisoning.
+	 * @param string $host
+	 * @return bool
+	 */
+	public static function isTrustedDomain($domain) {
+		$trustedList = \OC_Config::getValue('trusted_domains', array(''));
+		return in_array($domain, $trustedList);
 	}
 
 	/**
@@ -36,21 +53,27 @@ class OC_Request {
 				$host = trim(array_pop(explode(",", $_SERVER['HTTP_X_FORWARDED_HOST'])));
 			}
 			else{
-				$host=$_SERVER['HTTP_X_FORWARDED_HOST'];
+				$host = $_SERVER['HTTP_X_FORWARDED_HOST'];
 			}
-		}
-		else{
+		} else {
 			if (isset($_SERVER['HTTP_HOST'])) {
-				return $_SERVER['HTTP_HOST'];
+				$host = $_SERVER['HTTP_HOST'];
 			}
-			if (isset($_SERVER['SERVER_NAME'])) {
-				return $_SERVER['SERVER_NAME'];
+			else if (isset($_SERVER['SERVER_NAME'])) {
+				$host = $_SERVER['SERVER_NAME'];
 			}
-			return 'localhost';
 		}
-		return $host;
-	}
 
+		// Verify that the host is a trusted domain if the trusted domains
+		// are defined
+		// If no trusted domain is provided the first trusted domain is returned
+		if(self::isTrustedDomain($host) || \OC_Config::getValue('trusted_domains', "") === "") {
+			return $host;
+		} else {
+			$trustedList = \OC_Config::getValue('trusted_domains', array(''));
+			return $trustedList[0];
+		}
+	}
 
 	/**
 	* @brief Returns the server protocol
@@ -64,14 +87,14 @@ class OC_Request {
 		}
 		if (isset($_SERVER['HTTP_X_FORWARDED_PROTO'])) {
 			$proto = strtolower($_SERVER['HTTP_X_FORWARDED_PROTO']);
-		}else{
-			if(isset($_SERVER['HTTPS']) and !empty($_SERVER['HTTPS']) and ($_SERVER['HTTPS']!='off')) {
-				$proto = 'https';
-			}else{
-				$proto = 'http';
-			}
+			// Verify that the protocol is always HTTP or HTTPS
+			// default to http if an invalid value is provided
+			return $proto === 'https' ? 'https' : 'http';
 		}
-		return $proto;
+		if (isset($_SERVER['HTTPS']) && !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
+			return 'https';
+		}
+		return 'http';
 	}
 
 	/**
@@ -80,6 +103,7 @@ class OC_Request {
 	 *
 	 * Returns the request uri, even if the website uses one or more
 	 * reverse proxies
+	 * @return string
 	 */
 	public static function requestUri() {
 		$uri = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '';
@@ -91,7 +115,7 @@ class OC_Request {
 
 	/**
 	 * @brief Returns the script name
-	 * @returns string the script name
+	 * @return string the script name
 	 *
 	 * Returns the script name, even if the website uses one or more
 	 * reverse proxies
@@ -99,7 +123,7 @@ class OC_Request {
 	public static function scriptName() {
 		$name = $_SERVER['SCRIPT_NAME'];
 		if (OC_Config::getValue('overwritewebroot', '') !== '' and self::isOverwriteCondition()) {
-			$serverroot = str_replace("\\", '/', substr(__DIR__, 0, -4));
+			$serverroot = str_replace("\\", '/', substr(__DIR__, 0, -strlen('lib/private/')));
 			$suburi = str_replace("\\", "/", substr(realpath($_SERVER["SCRIPT_FILENAME"]), strlen($serverroot)));
 			$name = OC_Config::getValue('overwritewebroot', '') . $suburi;
 		}
@@ -108,7 +132,7 @@ class OC_Request {
 
 	/**
 	 * @brief get Path info from request
-	 * @returns string Path info or false when not found
+	 * @return string Path info or false when not found
 	 */
 	public static function getPathInfo() {
 		if (array_key_exists('PATH_INFO', $_SERVER)) {
@@ -132,47 +156,48 @@ class OC_Request {
 
 	/**
 	 * @brief get Path info from request, not urldecoded
-	 * @returns string Path info or false when not found
+	 * @return string Path info or false when not found
 	 */
 	public static function getRawPathInfo() {
-		$path_info = substr($_SERVER['REQUEST_URI'], strlen($_SERVER['SCRIPT_NAME']));
+		$requestUri = $_SERVER['REQUEST_URI'];
+		// remove too many leading slashes - can be caused by reverse proxy configuration
+		if (strpos($requestUri, '/') === 0) {
+			$requestUri = '/' . ltrim($requestUri, '/');
+		}
+
 		// Remove the query string from REQUEST_URI
-		if ($pos = strpos($path_info, '?')) {
-			$path_info = substr($path_info, 0, $pos);
+		if ($pos = strpos($requestUri, '?')) {
+			$requestUri = substr($requestUri, 0, $pos);
 		}
-		return $path_info;
-	}
 
-	/**
-	 * @brief Check if this is a no-cache request
-	 * @returns boolean true for no-cache
-	 */
-	static public function isNoCache() {
-		if (!isset($_SERVER['HTTP_CACHE_CONTROL'])) {
-			return false;
-		}
-		return $_SERVER['HTTP_CACHE_CONTROL'] == 'no-cache';
-	}
+		$scriptName = $_SERVER['SCRIPT_NAME'];
+		$path_info = $requestUri;
 
-	/**
-	 * @brief Check if the requestor understands gzip
-	 * @returns boolean true for gzip encoding supported
-	 */
-	static public function acceptGZip() {
-		if (!isset($_SERVER['HTTP_ACCEPT_ENCODING'])) {
-			return false;
+		// strip off the script name's dir and file name
+		list($path, $name) = \Sabre_DAV_URLUtil::splitPath($scriptName);
+		if (!empty($path)) {
+			if( $path === $path_info || strpos($path_info, $path.'/') === 0) {
+				$path_info = substr($path_info, strlen($path));
+			} else {
+				throw new Exception("The requested uri($requestUri) cannot be processed by the script '$scriptName')");
+			}
 		}
-		$HTTP_ACCEPT_ENCODING = $_SERVER["HTTP_ACCEPT_ENCODING"];
-		if( strpos($HTTP_ACCEPT_ENCODING, 'x-gzip') !== false )
-			return 'x-gzip';
-		else if( strpos($HTTP_ACCEPT_ENCODING, 'gzip') !== false )
-			return 'gzip';
-		return false;
+		if (strpos($path_info, '/'.$name) === 0) {
+			$path_info = substr($path_info, strlen($name) + 1);
+		}
+		if (strpos($path_info, $name) === 0) {
+			$path_info = substr($path_info, strlen($name));
+		}
+		if($path_info === '/'){
+			return '';
+		} else {
+			return $path_info;
+		}
 	}
 
 	/**
 	 * @brief Check if the requester sent along an mtime
-	 * @returns false or an mtime
+	 * @return false or an mtime
 	 */
 	static public function hasModificationTime () {
 		if (isset($_SERVER['HTTP_X_OC_MTIME'])) {
@@ -180,5 +205,23 @@ class OC_Request {
 		} else {
 			return false;
 		}
+	}
+
+	/**
+	 * Checks whether the user agent matches a given regex
+	 * @param string|array $agent agent name or array of agent names
+	 * @return boolean true if at least one of the given agent matches,
+	 * false otherwise
+	 */
+	static public function isUserAgent($agent) {
+		if (!is_array($agent)) {
+			$agent = array($agent);
+		}
+		foreach ($agent as $regex) {
+			if (preg_match($regex, $_SERVER['HTTP_USER_AGENT'])) {
+				return true;
+			}
+		}
+		return false;
 	}
 }

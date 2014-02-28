@@ -1,5 +1,5 @@
 <!--[if IE 8]><style>input[type="checkbox"]{padding:0;}</style><![endif]-->
-<form method="post">
+<form method="post" name="login">
 	<fieldset>
 	<?php if (!empty($_['redirect_url'])) {
 		print_unescaped('<input type="hidden" name="redirect_url" value="' . OC_Util::sanitizeHTML($_['redirect_url']) . '" />');
@@ -18,17 +18,25 @@
 				<small><?php p($l->t('Please contact your administrator.')); ?></small>
 			</div>
 		<?php endif; ?>
+		<p id="message" class="hidden">
+			<img class="float-spinner" src="<?php p(\OCP\Util::imagePath('core', 'loading-dark.gif'));?>"/>
+			<span id="messageText"></span>
+			<!-- the following div ensures that the spinner is always inside the #message div -->
+			<div style="clear: both;"></div>
+		</p>
 		<p class="infield grouptop">
 			<input type="text" name="user" id="user" placeholder=""
-				   value="<?php p($_['username']); ?>"<?php p($_['user_autofocus'] ? ' autofocus' : ''); ?>
-				   autocomplete="on" required/>
+				   value="<?php p($_['username']); ?>"
+				   <?php p($_['user_autofocus'] ? 'autofocus' : ''); ?>
+				   autocomplete="on" autocapitalize="off" autocorrect="off" required />
 			<label for="user" class="infield"><?php p($l->t('Username')); ?></label>
 			<img class="svg" src="<?php print_unescaped(image_path('', 'actions/user.svg')); ?>" alt=""/>
 		</p>
 
 		<p class="infield groupbottom">
 			<input type="password" name="password" id="password" value="" placeholder=""
-				   required<?php p($_['user_autofocus'] ? '' : ' autofocus'); ?> />
+				   <?php p($_['user_autofocus'] ? '' : 'autofocus'); ?>
+				   autocomplete="on" autocapitalize="off" autocorrect="off" required />
 			<label for="password" class="infield"><?php p($l->t('Password')); ?></label>
 			<img class="svg" id="password-icon" src="<?php print_unescaped(image_path('', 'actions/password.svg')); ?>" alt=""/>
 		</p>

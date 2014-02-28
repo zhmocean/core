@@ -20,6 +20,11 @@
  *
  */
 
+/**
+ * Public interface of ownCloud for apps to use.
+ * Files/Storage interface
+ */
+
 // use OCP namespace for all classes that are considered public.
 // This means that they should be used by apps instead of the internal ownCloud classes
 namespace OCP\Files;
@@ -34,6 +39,7 @@ interface Storage {
 	 * $parameters is a free form array with the configuration options needed to construct the storage
 	 *
 	 * @param array $parameters
+	 * @return void
 	 */
 	public function __construct($parameters);
 
@@ -310,4 +316,15 @@ interface Storage {
 	 * @return string
 	 */
 	public function getETag($path);
+
+	/**
+	 * Returns whether the storage is local, which means that files
+	 * are stored on the local filesystem instead of remotely.
+	 * Calling getLocalFile() for local storages should always
+	 * return the local files, whereas for non-local storages
+	 * it might return a temporary file.
+	 *
+	 * @return bool true if the files are stored locally, false otherwise
+	 */
+	public function isLocal();
 }

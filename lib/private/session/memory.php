@@ -11,7 +11,7 @@ namespace OC\Session;
 /**
  * Class Internal
  *
- * store session data in an in-memory array, not persistance
+ * store session data in an in-memory array, not persistent
  *
  * @package OC\Session
  */
@@ -25,7 +25,7 @@ class Memory extends Session {
 
 	/**
 	 * @param string $key
-	 * @param mixed $value
+	 * @param integer $value
 	 */
 	public function set($key, $value) {
 		$this->data[$key] = $value;

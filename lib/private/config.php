@@ -50,7 +50,7 @@ class Config {
 	protected $debugMode;
 
 	/**
-	 * @param $configDir path to the config dir, needs to end with '/'
+	 * @param string $configDir path to the config dir, needs to end with '/'
 	 */
 	public function __construct($configDir) {
 		$this->configDir = $configDir;
@@ -77,7 +77,7 @@ class Config {
 	/**
 	 * @brief Gets a value from config.php
 	 * @param string $key key
-	 * @param string $default = null default value
+	 * @param string|null $default = null default value
 	 * @return string the value or $default
 	 *
 	 * This function gets the value from config.php. If it does not exist,

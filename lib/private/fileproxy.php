@@ -67,7 +67,14 @@ class OC_FileProxy{
 		self::$proxies[]=$proxy;
 	}
 
-	public static function getProxies($operation) {
+	/**
+	 * @param string $operation
+	 */
+	public static function getProxies($operation = null) {
+		if ($operation === null) {
+			// return all
+			return self::$proxies;
+		}
 		$proxies=array();
 		foreach(self::$proxies as $proxy) {
 			if(method_exists($proxy, $operation)) {
@@ -77,6 +84,10 @@ class OC_FileProxy{
 		return $proxies;
 	}
 
+	/**
+	 * @param string $operation
+	 * @param string|boolean $filepath
+	 */
 	public static function runPreProxies($operation,&$filepath,&$filepath2=null) {
 		if(!self::$enabled) {
 			return true;
@@ -97,6 +108,12 @@ class OC_FileProxy{
 		return true;
 	}
 
+	/**
+	 * @param string $operation
+	 * @param string|boolean $path
+	 *
+	 * @return string
+	 */
 	public static function runPostProxies($operation, $path, $result) {
 		if(!self::$enabled) {
 			return $result;

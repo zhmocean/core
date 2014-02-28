@@ -34,15 +34,14 @@ class OC_Image {
 
 	/**
 	* @brief Get mime type for an image file.
-	* @param $filepath The path to a local image file.
+	* @param string|null $filepath The path to a local image file.
 	* @returns string The mime type if the it could be determined, otherwise an empty string.
 	*/
 	static public function getMimeTypeForFile($filePath) {
 		// exif_imagetype throws "read error!" if file is less than 12 byte
 		if (filesize($filePath) > 11) {
 			$imageType = exif_imagetype($filePath);
-		}
-		else {
+		} else {
 			$imageType = false;
 		}
 		return $imageType ? image_type_to_mime_type($imageType) : '';
@@ -50,7 +49,7 @@ class OC_Image {
 
 	/**
 	* @brief Constructor.
-	* @param $imageref The path to a local file, a base64 encoded string or a resource created by an imagecreate* function.
+	* @param string|resource $imageref The path to a local file, a base64 encoded string or a resource created by an imagecreate* function.
 	* @returns bool False on error
 	*/
 	public function __construct($imageRef = null) {
@@ -115,13 +114,11 @@ class OC_Image {
 			case 3:
 			case 4: // Not tested
 				return $this->width();
-				break;
 			case 5: // Not tested
 			case 6:
 			case 7: // Not tested
 			case 8:
 				return $this->height();
-				break;
 		}
 		return $this->width();
 	}
@@ -140,13 +137,11 @@ class OC_Image {
 			case 3:
 			case 4: // Not tested
 				return $this->height();
-				break;
 			case 5: // Not tested
 			case 6:
 			case 7: // Not tested
 			case 8:
 				return $this->width();
-				break;
 		}
 		return $this->height();
 	}
@@ -163,6 +158,7 @@ class OC_Image {
 	/**
 	* @brief Saves the image.
 	* @returns bool
+	* @param string $filePath
 	*/
 
 	public function save($filePath=null) {
@@ -196,7 +192,6 @@ class OC_Image {
 			return false;
 		}
 
-		$retVal = false;
 		switch($this->imageType) {
 			case IMAGETYPE_GIF:
 				$retVal = imagegif($this->resource, $filePath);
@@ -230,7 +225,7 @@ class OC_Image {
 	}
 
 	/**
-	* @returns Returns the image resource in any.
+	* @returns resource Returns the image resource in any.
 	*/
 	public function resource() {
 		return $this->resource;
@@ -263,8 +258,8 @@ class OC_Image {
 	}
 
 	/**
-	* @returns Returns a base64 encoded string suitable for embedding in a VCard.
-	*/
+	 * @return string - base64 encoded, which is suitable for embedding in a VCard.
+	 */
 	function __toString() {
 		return base64_encode($this->data());
 	}
@@ -306,43 +301,33 @@ class OC_Image {
 		$o = $this->getOrientation();
 		OC_Log::write('core', 'OC_Image->fixOrientation() Orientation: '.$o, OC_Log::DEBUG);
 		$rotate = 0;
-		$flip = false;
 		switch($o) {
 			case -1:
 				return false; //Nothing to fix
-				break;
 			case 1:
 				$rotate = 0;
-				$flip = false;
 				break;
 			case 2: // Not tested
 				$rotate = 0;
-				$flip = true;
 				break;
 			case 3:
 				$rotate = 180;
-				$flip = false;
 				break;
 			case 4: // Not tested
 				$rotate = 180;
-				$flip = true;
 				break;
 			case 5: // Not tested
 				$rotate = 90;
-				$flip = true;
 				break;
 			case 6:
 				//$rotate = 90;
 				$rotate = 270;
-				$flip = false;
 				break;
 			case 7: // Not tested
 				$rotate = 270;
-				$flip = true;
 				break;
 			case 8:
 				$rotate = 90;
-				$flip = false;
 				break;
 		}
 		if($rotate) {
@@ -366,6 +351,7 @@ class OC_Image {
 				return false;
 			}
 		}
+		return false;
 	}
 
 	/**
@@ -396,7 +382,7 @@ class OC_Image {
 	/**
 	* @brief Loads an image from an open file handle.
 	* It is the responsibility of the caller to position the pointer at the correct place and to close the handle again.
-	* @param $handle
+	* @param resource $handle
 	* @returns An image resource or false on error
 	*/
 	public function loadFromFileHandle($handle) {
@@ -409,14 +395,14 @@ class OC_Image {
 
 	/**
 	* @brief Loads an image from a local file.
-	* @param $imageref The path to a local file.
+	* @param $imagePath The path to a local file.
 	* @returns An image resource or false on error
 	*/
 	public function loadFromFile($imagePath=false) {
 		// exif_imagetype throws "read error!" if file is less than 12 byte
 		if(!@is_file($imagePath) || !file_exists($imagePath) || filesize($imagePath) < 12 || !is_readable($imagePath)) {
 			// Debug output disabled because this method is tried before loadFromBase64?
-			OC_Log::write('core', 'OC_Image->loadFromFile, couldn\'t load: '.$imagePath, OC_Log::DEBUG);
+			OC_Log::write('core', 'OC_Image->loadFromFile, couldn\'t load: ' . (string) urlencode($imagePath), OC_Log::DEBUG);
 			return false;
 		}
 		$iType = exif_imagetype($imagePath);
@@ -563,7 +549,7 @@ class OC_Image {
 	 * Create a new image from file or URL
 	 * @link http://www.programmierer-forum.de/function-imagecreatefrombmp-laeuft-mit-allen-bitraten-t143137.htm
 	 * @version 1.00
-	 * @param string $filename <p>
+	 * @param string $fileName <p>
 	 * Path to the BMP image.
 	 * </p>
 	 * @return resource an image resource identifier on success, <b>FALSE</b> on errors.
@@ -598,9 +584,9 @@ class OC_Image {
 			$meta['imagesize'] = $meta['filesize'] - $meta['offset'];
 			// in rare cases filesize is equal to offset so we need to read physical size
 			if ($meta['imagesize'] < 1) {
-				$meta['imagesize'] = @filesize($filename) - $meta['offset'];
+				$meta['imagesize'] = @filesize($fileName) - $meta['offset'];
 				if ($meta['imagesize'] < 1) {
-					trigger_error('imagecreatefrombmp: Can not obtain filesize of ' . $filename . '!', E_USER_WARNING);
+					trigger_error('imagecreatefrombmp: Can not obtain filesize of ' . $fileName . '!', E_USER_WARNING);
 					return false;
 				}
 			}
@@ -704,7 +690,7 @@ class OC_Image {
 
 	/**
 	* @brief Resizes the image preserving ratio.
-	* @param $maxsize The maximum size of either the width or height.
+	* @param integer $maxSize The maximum size of either the width or height.
 	* @returns bool
 	*/
 	public function resize($maxSize) {
@@ -852,8 +838,8 @@ class OC_Image {
 
 	/**
 	 * @brief Resizes the image to fit within a boundry while preserving ratio.
-	 * @param $maxWidth
-	 * @param $maxHeight
+	 * @param integer $maxWidth
+	 * @param integer $maxHeight
 	 * @returns bool
 	 */
 	public function fitIn($maxWidth, $maxHeight) {
@@ -891,8 +877,7 @@ if ( ! function_exists( 'imagebmp') ) {
 	 * @link http://www.programmierer-forum.de/imagebmp-gute-funktion-gefunden-t143716.htm
 	 * @author mgutt <marc@gutt.it>
 	 * @version 1.00
-	 * @param resource $image
-	 * @param string $filename [optional] <p>The path to save the file to.</p>
+	 * @param string $fileName [optional] <p>The path to save the file to.</p>
 	 * @param int $bit [optional] <p>Bit depth, (default is 24).</p>
 	 * @param int $compression [optional]
 	 * @return bool <b>TRUE</b> on success or <b>FALSE</b> on failure.
@@ -947,7 +932,7 @@ if ( ! function_exists( 'imagebmp') ) {
 						$index = imagecolorat($im, $i, $j);
 						if ($index !== $lastIndex || $sameNum > 255) {
 							if ($sameNum != 0) {
-								$bmpData .= chr($same_num) . chr($lastIndex);
+								$bmpData .= chr($sameNum) . chr($lastIndex);
 							}
 							$lastIndex = $index;
 							$sameNum = 1;
@@ -1008,7 +993,7 @@ if ( ! function_exists( 'exif_imagetype' ) ) {
 	/**
 	 * Workaround if exif_imagetype does not exist
 	 * @link http://www.php.net/manual/en/function.exif-imagetype.php#80383
-	 * @param string $filename
+	 * @param string $fileName
 	 * @return string|boolean
 	 */
 	function exif_imagetype ( $fileName ) {

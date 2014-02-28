@@ -11,8 +11,6 @@ class OC_Util {
 	public static $headers=array();
 	private static $rootMounted=false;
 	private static $fsSetup=false;
-	public static $coreStyles=array();
-	public static $coreScripts=array();
 
 	/**
 	 * @brief Can be set up
@@ -51,18 +49,27 @@ class OC_Util {
 			self::$rootMounted = true;
 		}
 
+		if ($user != '' && !OCP\User::userExists($user)) {
+			return false;
+		}
+
 		//if we aren't logged in, there is no use to set up the filesystem
 		if( $user != "" ) {
-			$quota = self::getUserQuota($user);
-			if ($quota !== \OC\Files\SPACE_UNLIMITED) {
-				\OC\Files\Filesystem::addStorageWrapper(function($mountPoint, $storage) use ($quota, $user) {
-					if ($mountPoint === '/' . $user . '/'){
-						return new \OC\Files\Storage\Wrapper\Quota(array('storage' => $storage, 'quota' => $quota));
-					} else {
-						return $storage;
+			\OC\Files\Filesystem::addStorageWrapper(function($mountPoint, $storage){
+				// set up quota for home storages, even for other users
+				// which can happen when using sharing
+
+				if ($storage instanceof \OC\Files\Storage\Home) {
+					$user = $storage->getUser()->getUID();
+					$quota = OC_Util::getUserQuota($user);
+					if ($quota !== \OC\Files\SPACE_UNLIMITED) {
+						return new \OC\Files\Storage\Wrapper\Quota(array('storage' => $storage, 'quota' => $quota, 'root' => 'files'));
 					}
-				});
-			}
+				}
+
+				return $storage;
+			});
+
 			$userDir = '/'.$user.'/files';
 			$userRoot = OC_User::getHome($user);
 			$userDirectory = $userRoot . '/files';
@@ -81,10 +88,14 @@ class OC_Util {
 		return true;
 	}
 
+	/**
+	 * @param string $user
+	 */
 	public static function getUserQuota($user){
-		$userQuota = OC_Preferences::getValue($user, 'files', 'quota', 'default');
+		$config = \OC::$server->getConfig();
+		$userQuota = $config->getUserValue($user, 'files', 'quota', 'default');
 		if($userQuota === 'default') {
-			$userQuota = OC_AppConfig::getValue('files', 'default_quota', 'none');
+			$userQuota = $config->getAppValue('files', 'default_quota', 'none');
 		}
 		if($userQuota === 'none') {
 			return \OC\Files\SPACE_UNLIMITED;
@@ -205,7 +216,7 @@ class OC_Util {
 	 * @brief add a javascript file
 	 *
 	 * @param string $application
-	 * @param filename $file
+	 * @param string|null $file filename
 	 * @return void
 	 */
 	public static function addScript( $application, $file = null ) {
@@ -224,7 +235,7 @@ class OC_Util {
 	 * @brief add a css file
 	 *
 	 * @param string $application
-	 * @param filename $file
+	 * @param string|null $file filename
 	 * @return void
 	 */
 	public static function addStyle( $application, $file = null ) {
@@ -307,7 +318,7 @@ class OC_Util {
 			.'" target="_blank">giving the webserver write access to the root directory</a>.';
 
 		// Check if config folder is writable.
-		if(!is_writable(OC::$SERVERROOT."/config/") or !is_readable(OC::$SERVERROOT."/config/")) {
+		if(!is_writable(OC::$configDir) or !is_readable(OC::$configDir)) {
 			$errors[] = array(
 				'error' => "Can't write into config directory",
 				'hint' => 'This can usually be fixed by '
@@ -351,6 +362,13 @@ class OC_Util {
 			);
 		} else {
 			$errors = array_merge($errors, self::checkDataDirectoryPermissions($CONFIG_DATADIRECTORY));
+		}
+
+		if(!OC_Util::isSetLocaleWorking()) {
+			$errors[] = array(
+				'error' => 'Setting locale to en_US.UTF-8/fr_FR.UTF-8/es_ES.UTF-8/de_DE.UTF-8/ru_RU.UTF-8/pt_BR.UTF-8/it_IT.UTF-8/ja_JP.UTF-8/zh_CN.UTF-8 failed',
+				'hint' => 'Please install one of theses locales on your system and restart your webserver.'
+			);
 		}
 
 		$moduleHint = "Please ask your server administrator to install the module.";
@@ -425,11 +443,11 @@ class OC_Util {
 			);
 			$webServerRestart = true;
 		}
-		if(floatval(phpversion()) < 5.3) {
+		if(version_compare(phpversion(), '5.3.3', '<')) {
 			$errors[] = array(
-				'error'=>'PHP 5.3 is required.',
-				'hint'=>'Please ask your server administrator to update PHP to version 5.3 or higher.'
-					.' PHP 5.2 is no longer supported by ownCloud and the PHP community.'
+				'error'=>'PHP 5.3.3 or higher is required.',
+				'hint'=>'Please ask your server administrator to update PHP to the latest version.'
+					.' Your PHP version is no longer supported by ownCloud and the PHP community.'
 			);
 			$webServerRestart = true;
 		}
@@ -496,7 +514,7 @@ class OC_Util {
 
 	/**
 	 * @brief Check for correct file permissions of data directory
-	 * @paran string $dataDirectory
+	 * @param string $dataDirectory
 	 * @return array arrays with error messages and hints
 	 */
 	public static function checkDataDirectoryPermissions($dataDirectory) {
@@ -550,6 +568,7 @@ class OC_Util {
 
 	/**
 	 * @brief Check if the app is enabled, redirects to home if not
+	 * @param string $app
 	 * @return void
 	 */
 	public static function checkAppEnabled($app) {
@@ -568,7 +587,7 @@ class OC_Util {
 		// Check if we are a user
 		if( !OC_User::isLoggedIn()) {
 			header( 'Location: '.OC_Helper::linkToAbsolute( '', 'index.php',
-				array('redirectUrl' => OC_Request::requestUri())
+				array('redirect_url' => OC_Request::requestUri())
 			));
 			exit();
 		}
@@ -609,7 +628,7 @@ class OC_Util {
 
 	/**
 	 * @brief Check if the user is a subadmin, redirects to home if not
-	 * @return array $groups where the current user is subadmin
+	 * @return null|boolean $groups where the current user is subadmin
 	 */
 	public static function checkSubAdminUser() {
 		OC_Util::checkLoggedIn();
@@ -772,8 +791,12 @@ class OC_Util {
 		}
 
 		$fp = @fopen($testFile, 'w');
-		@fwrite($fp, $testContent);
-		@fclose($fp);
+		if (!$fp) {
+			throw new OC\HintException('Can\'t create test file to check for working .htaccess file.',
+				'Make sure it is possible for the webserver to write to '.$testFile);
+		}
+		fwrite($fp, $testContent);
+		fclose($fp);
 
 		// accessing the file via http
 		$url = OC_Helper::makeURLAbsolute(OC::$WEBROOT.'/data'.$fileName);
@@ -847,8 +870,8 @@ class OC_Util {
 			return true;
 		}
 
-		$result = setlocale(LC_ALL, 'en_US.UTF-8', 'en_US.UTF8');
-		if($result == false) {
+		\Patchwork\Utf8\Bootup::initLocale();
+		if ('' === basename('§')) {
 			return false;
 		}
 		return true;
@@ -863,6 +886,14 @@ class OC_Util {
 	}
 
 	/**
+	 * @brief Check if a PHP version older then 5.3.8 is installed.
+	 * @return bool
+	 */
+	public static function isPHPoutdated() {
+		return version_compare(phpversion(), '5.3.8', '<');
+	}
+
+	/**
 	 * @brief Check if the ownCloud server can connect to the internet
 	 * @return bool
 	 */
@@ -870,6 +901,11 @@ class OC_Util {
 		// in case there is no internet connection on purpose return false
 		if (self::isInternetConnectionEnabled() === false) {
 			return false;
+		}
+
+		// in case the connection is via proxy return true to avoid connecting to owncloud.org
+		if(OC_Config::getValue('proxy', '') != '') {
+			return true;
 		}
 
 		// try to connect to owncloud.org to see if http connections to the internet are possible.
@@ -891,7 +927,7 @@ class OC_Util {
 
 	/**
 	 * @brief Check if the connection to the internet is disabled on purpose
-	 * @return bool
+	 * @return string
 	 */
 	public static function isInternetConnectionEnabled(){
 		return \OC_Config::getValue("has_internet_connection", true);
@@ -1065,7 +1101,11 @@ class OC_Util {
 		}
 		// XCache
 		if (function_exists('xcache_clear_cache')) {
-			xcache_clear_cache(XC_TYPE_VAR, 0);
+			if (ini_get('xcache.admin.enable_auth')) {
+				OC_Log::write('core', 'XCache opcode cache will not be cleared because "xcache.admin.enable_auth" is enabled.', \OC_Log::WARN);
+			} else {
+				xcache_clear_cache(XC_TYPE_PHP, 0);
+			}
 		}
 		// Opcache (PHP >= 5.5)
 		if (function_exists('opcache_reset')) {
@@ -1092,11 +1132,46 @@ class OC_Util {
 	}
 
 	/**
+	 * @param boolean|string $file
 	 * @return string
 	 */
 	public static function basename($file) {
 		$file = rtrim($file, '/');
 		$t = explode('/', $file);
 		return array_pop($t);
+	}
+
+	/**
+	 * A human readable string is generated based on version, channel and build number
+	 * @return string
+	 */
+	public static function getHumanVersion() {
+		$version = OC_Util::getVersionString().' ('.OC_Util::getChannel().')';
+		$build = OC_Util::getBuild();
+		if(!empty($build) and OC_Util::getChannel() === 'daily') {
+			$version .= ' Build:' . $build;
+		}
+		return $version;
+	}
+
+	/**
+	 * Returns whether the given file name is valid
+	 * @param $file string file name to check
+	 * @return bool true if the file name is valid, false otherwise
+	 */
+	public static function isValidFileName($file) {
+		$trimmed = trim($file);
+		if ($trimmed === '') {
+			return false;
+		}
+		if ($trimmed === '.' || $trimmed === '..') {
+			return false;
+		}
+		foreach (str_split($trimmed) as $char) {
+			if (strpos(\OCP\FILENAME_INVALID_CHARS, $char) !== false) {
+				return false;
+			}
+		}
+		return true;
 	}
 }

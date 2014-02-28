@@ -81,7 +81,7 @@ class JSON {
 	* parameter to the ajax call, then assign it to the template and finally
 	* add a hidden input field also named 'requesttoken' containing the value.
 	*
-	* @return string json formatted error string if not valid.
+	* @return \json|null json formatted error string if not valid.
 	*/
 	public static function callCheck() {
 		return(\OC_JSON::callCheck());
@@ -167,6 +167,22 @@ class JSON {
 	* @return string json formatted string if not admin user.
 	*/
 	public static function checkAdminUser() {
-		return(\OC_JSON::checkAdminUser());
+		\OC_JSON::checkAdminUser();
+	}
+
+	/**
+	 * Encode JSON
+	 * @param array $data
+	 */
+	public static function encode($data) {
+		return(\OC_JSON::encode($data));
+	}
+
+	/**
+	 * Check is a given user exists - send json error msg if not
+	 * @param string $user
+	 */
+	public static function checkUserExists($user) {
+		\OC_JSON::checkUserExists($user);
 	}
 }

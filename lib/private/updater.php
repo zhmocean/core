@@ -37,7 +37,7 @@ class Updater extends BasicEmitter {
 
 	/**
 	 * Check if a new version is available
-	 * @param string $updateUrl the url to check, i.e. 'http://apps.owncloud.com/updater.php'
+	 * @param string $updaterUrl the url to check, i.e. 'http://apps.owncloud.com/updater.php'
 	 * @return array | bool
 	 */
 	public function check($updaterUrl) {
@@ -58,6 +58,7 @@ class Updater extends BasicEmitter {
 		$version['updated'] = \OC_Appconfig::getValue('core', 'lastupdatedat');
 		$version['updatechannel'] = \OC_Util::getChannel(); 
 		$version['edition'] = \OC_Util::getEditionString();
+		$version['build'] = \OC_Util::getBuild();
 		$versionString = implode('x', $version);
 
 		//fetch xml data from updater
@@ -101,6 +102,20 @@ class Updater extends BasicEmitter {
 			$this->log->debug('starting upgrade from ' . $installedVersion . ' to ' . $currentVersion, array('app' => 'core'));
 		}
 		$this->emit('\OC\Updater', 'maintenanceStart');
+
+		/*
+		 * START CONFIG CHANGES FOR OLDER VERSIONS
+		 */
+		if (version_compare($currentVersion, '6.90.1', '<')) {
+			// Add the overwriteHost config if it is not existant
+			// This is added to prevent host header poisoning
+			\OC_Config::setValue('trusted_domains', \OC_Config::getValue('trusted_domains', array(\OC_Request::serverHost()))); 
+		}
+		/*
+		 * STOP CONFIG CHANGES FOR OLDER VERSIONS
+		 */
+
+
 		try {
 			\OC_DB::updateDbFromStructure(\OC::$SERVERROOT . '/db_structure.xml');
 			$this->emit('\OC\Updater', 'dbUpgrade');
@@ -115,6 +130,10 @@ class Updater extends BasicEmitter {
 		\OC_App::checkAppsRequirements();
 		// load all apps to also upgrade enabled apps
 		\OC_App::loadApps();
+
+		$repair = new Repair();
+		$repair->run();
+
 		\OC_Config::setValue('maintenance', false);
 		$this->emit('\OC\Updater', 'maintenanceEnd');
 	}
@@ -157,3 +176,4 @@ class Updater extends BasicEmitter {
 		$this->emit('\OC\Updater', 'filecacheDone');
 	}
 }
+

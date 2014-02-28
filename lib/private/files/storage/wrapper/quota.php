@@ -16,13 +16,22 @@ class Quota extends Wrapper {
 	protected $quota;
 
 	/**
+	 * @var string $sizeRoot
+	 */
+	protected $sizeRoot;
+
+	/**
 	 * @param array $parameters
 	 */
 	public function __construct($parameters) {
 		$this->storage = $parameters['storage'];
 		$this->quota = $parameters['quota'];
+		$this->sizeRoot = isset($parameters['root']) ? $parameters['root'] : '';
 	}
 
+	/**
+	 * @param string $path
+	 */
 	protected function getSize($path) {
 		$cache = $this->getCache();
 		$data = $cache->get($path);
@@ -43,7 +52,7 @@ class Quota extends Wrapper {
 		if ($this->quota < 0) {
 			return $this->storage->free_space($path);
 		} else {
-			$used = $this->getSize('');
+			$used = $this->getSize($this->sizeRoot);
 			if ($used < 0) {
 				return \OC\Files\SPACE_NOT_COMPUTED;
 			} else {
@@ -95,7 +104,7 @@ class Quota extends Wrapper {
 	public function fopen($path, $mode) {
 		$source = $this->storage->fopen($path, $mode);
 		$free = $this->free_space('');
-		if ($free >= 0 && $mode !== 'r') {
+		if ($source && $free >= 0 && $mode !== 'r' && $mode !== 'rb') {
 			return \OC\Files\Stream\Quota::wrap($source, $free);
 		} else {
 			return $source;

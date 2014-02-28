@@ -68,6 +68,7 @@ class OC_Log_Owncloud {
 				$timezone = new DateTimeZone('UTC');
 			}
 			$time = new DateTime(null, $timezone);
+			// remove username/passswords from URLs before writing the to the log file
 			$entry=array('app'=>$app, 'message'=>$message, 'level'=>$level, 'time'=> $time->format($format));
 			$entry = json_encode($entry);
 			$handle = @fopen(self::$logFile, 'a');

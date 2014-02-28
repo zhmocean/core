@@ -156,6 +156,9 @@ class OC_Template extends \OC\Template\Base {
 	 *
 	 * Will select the template file for the selected theme and formfactor.
 	 * Checking all the possible locations.
+	 * @param string $theme
+	 * @param string $app
+	 * @param string $fext
 	 */
 	protected function findTemplate($theme, $app, $name, $fext) {
 		// Check if it is a app template or not.
@@ -182,7 +185,7 @@ class OC_Template extends \OC\Template\Base {
 
 	/**
 	 * @brief Process the template
-	 * @return bool
+	 * @return boolean|string
 	 *
 	 * This function process the template. If $this->renderas is set, it
 	 * will produce a full page.
@@ -223,7 +226,7 @@ class OC_Template extends \OC\Template\Base {
 	 * @param string $application The application we render the template for
 	 * @param string $name Name of the template
 	 * @param array $parameters Parameters for the template
-	 * @return bool
+	 * @return boolean|null
 	 */
 	public static function printUserPage( $application, $name, $parameters = array() ) {
 		$content = new OC_Template( $application, $name, "user" );
@@ -292,9 +295,8 @@ class OC_Template extends \OC\Template\Base {
 			if (!empty($hint)) {
 				$hint = '<pre>'.$hint.'</pre>';
 			}
-			$l = OC_L10N::get('lib');
 			while (method_exists($exception, 'previous') && $exception = $exception->previous()) {
-				$error_msg .= '<br/>'.$l->t('Caused by:').' ';
+				$error_msg .= '<br/>Caused by:' . ' ';
 				if ($exception->getCode()) {
 					$error_msg .= '['.$exception->getCode().'] ';
 				}

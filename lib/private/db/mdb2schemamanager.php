@@ -19,6 +19,8 @@ class MDB2SchemaManager {
 	 */
 	public function __construct($conn) {
 		$this->conn = $conn;
+		$this->conn->close();
+		$this->conn->connect();
 	}
 
 	/**
@@ -51,7 +53,7 @@ class MDB2SchemaManager {
 	/**
 	 * @brief update the database scheme
 	 * @param string $file file to read structure from
-	 * @return bool
+	 * @return string|boolean
 	 */
 	public function updateDbFromStructure($file, $generateSql = false) {
 		$sm = $this->conn->getSchemaManager();
@@ -80,6 +82,9 @@ class MDB2SchemaManager {
 		$platform = $this->conn->getDatabasePlatform();
 		foreach($schemaDiff->changedTables as $tableDiff) {
 			$tableDiff->name = $platform->quoteIdentifier($tableDiff->name);
+			foreach($tableDiff->changedColumns as $column) {
+				$column->oldColumnName = $platform->quoteIdentifier($column->oldColumnName);
+			}
 		}
 		
 		if ($generateSql) {

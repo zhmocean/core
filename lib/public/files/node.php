@@ -20,6 +20,11 @@
  *
  */
 
+/**
+ * Public interface of ownCloud for apps to use.
+ * Files/Node interface
+ */
+
 // use OCP namespace for all classes that are considered public.
 // This means that they should be used by apps instead of the internal ownCloud classes
 namespace OCP\Files;
@@ -36,6 +41,7 @@ interface Node {
 
 	/**
 	 * Delete the file or folder
+	 * @return void
 	 */
 	public function delete();
 
@@ -53,6 +59,7 @@ interface Node {
 	 *
 	 * @param int $mtime (optional) modified date as unix timestamp
 	 * @throws \OCP\Files\NotPermittedException
+	 * @return void
 	 */
 	public function touch($mtime = null);
 

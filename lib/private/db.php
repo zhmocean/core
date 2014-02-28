@@ -44,14 +44,14 @@ class OC_DB {
 	/**
 	 * @var \OC\DB\Connection $connection
 	 */
-	static private $connection; //the prefered connection to use, only Doctrine
+	static private $connection; //the preferred connection to use, only Doctrine
 
 	static private $prefix=null;
 	static private $type=null;
 
 	/**
 	 * @brief connects to the database
-	 * @return bool true if connection can be established or false on error
+	 * @return boolean|null true if connection can be established or false on error
 	 *
 	 * Connects to the database as specified in config.php
 	 */
@@ -101,6 +101,9 @@ class OC_DB {
 					);
 					$connectionParams['adapter'] = '\OC\DB\Adapter';
 					$connectionParams['wrapperClass'] = 'OC\DB\Connection';
+					// Send "SET NAMES utf8". Only required on PHP 5.3 below 5.3.6.
+					// See http://stackoverflow.com/questions/4361459/php-pdo-charset-set-names#4361485
+					$eventManager->addEventSubscriber(new \Doctrine\DBAL\Event\Listeners\MysqlSessionInit);
 					break;
 				case 'pgsql':
 					$connectionParams = array(
@@ -193,7 +196,7 @@ class OC_DB {
 	 * @param int $offset
 	 * @param bool $isManipulation
 	 * @throws DatabaseException
-	 * @return \Doctrine\DBAL\Statement prepared SQL query
+	 * @return OC_DB_StatementWrapper prepared SQL query
 	 *
 	 * SQL query via Doctrine prepare(), needs to be execute()'d!
 	 */
@@ -249,7 +252,7 @@ class OC_DB {
 	 *					  an array with 'sql' and optionally 'limit' and 'offset' keys
 	 *					.. or a simple sql query string
 	 * @param array $parameters
-	 * @return result
+	 * @return OC_DB_StatementWrapper
 	 * @throws DatabaseException
 	 */
 	static public function executeAudited( $stmt, array $parameters = null) {
@@ -295,7 +298,7 @@ class OC_DB {
 	/**
 	 * @brief gets last value of autoincrement
 	 * @param string $table The optional table name (will replace *PREFIX*) and add sequence suffix
-	 * @return int id
+	 * @return string id
 	 * @throws DatabaseException
 	 *
 	 * \Doctrine\DBAL\Connection lastInsertId
@@ -312,7 +315,8 @@ class OC_DB {
 	 * @brief Insert a row if a matching row doesn't exists.
 	 * @param string $table. The table to insert into in the form '*PREFIX*tableName'
 	 * @param array $input. An array of fieldname/value pairs
-	 * @return int number of updated rows
+	 * @param string $table
+	 * @return boolean number of updated rows
 	 */
 	public static function insertIfNotExist($table, $input) {
 		self::connect();
@@ -365,7 +369,7 @@ class OC_DB {
 	 * @brief update the database schema
 	 * @param string $file file to read structure from
 	 * @throws Exception
-	 * @return bool
+	 * @return string|boolean
 	 */
 	public static function updateDbFromStructure($file) {
 		$schemaManager = self::getMDB2SchemaManager();

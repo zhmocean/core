@@ -58,13 +58,18 @@ class OC_Connector_Sabre_File extends OC_Connector_Sabre_Node implements Sabre_D
 			throw new \Sabre_DAV_Exception_ServiceUnavailable();
 		}
 
+		$fileName = basename($this->path);
+		if (!\OCP\Util::isValidFileName($fileName)) {
+			throw new \Sabre_DAV_Exception_BadRequest();
+		}
+
 		// chunked handling
 		if (isset($_SERVER['HTTP_OC_CHUNKED'])) {
 			return $this->createFileChunked($data);
 		}
 
 		// mark file as partial while uploading (ignored by the scanner)
-		$partpath = $this->path . '.part';
+		$partpath = $this->path . '.ocTransferId' . rand() . '.part';
 
 		// if file is located in /Shared we write the part file to the users
 		// root folder because we can't create new files in /shared
@@ -79,7 +84,7 @@ class OC_Connector_Sabre_File extends OC_Connector_Sabre_Node implements Sabre_D
 				\OC_Log::write('webdav', '\OC\Files\Filesystem::file_put_contents() failed', \OC_Log::ERROR);
 				$fs->unlink($partpath);
 				// because we have no clue about the cause we can only throw back a 500/Internal Server Error
-				throw new Sabre_DAV_Exception();
+				throw new Sabre_DAV_Exception('Could not write file contents');
 			}
 		} catch (\OCP\Files\NotPermittedException $e) {
 			// a more general case - due to whatever reason the content could not be written
@@ -105,7 +110,7 @@ class OC_Connector_Sabre_File extends OC_Connector_Sabre_Node implements Sabre_D
 		if ($renameOkay === false || $fileExists === false) {
 			\OC_Log::write('webdav', '\OC\Files\Filesystem::rename() failed', \OC_Log::ERROR);
 			$fs->unlink($partpath);
-			throw new Sabre_DAV_Exception();
+			throw new Sabre_DAV_Exception('Could not rename part file to final file');
 		}
 
 		// allow sync clients to send the mtime along in a header
@@ -142,15 +147,16 @@ class OC_Connector_Sabre_File extends OC_Connector_Sabre_Node implements Sabre_D
 	 * @throws Sabre_DAV_Exception_Forbidden
 	 */
 	public function delete() {
+		$fs = $this->getFS();
 
 		if ($this->path === 'Shared') {
 			throw new \Sabre_DAV_Exception_Forbidden();
 		}
 
-		if (!\OC\Files\Filesystem::isDeletable($this->path)) {
+		if (!$fs->isDeletable($this->path)) {
 			throw new \Sabre_DAV_Exception_Forbidden();
 		}
-		\OC\Files\Filesystem::unlink($this->path);
+		$fs->unlink($this->path);
 
 		// remove properties
 		$this->removeProperties();
@@ -206,6 +212,9 @@ class OC_Connector_Sabre_File extends OC_Connector_Sabre_Node implements Sabre_D
 
 	}
 
+	/**
+	 * @param resource $data
+	 */
 	private function createFileChunked($data)
 	{
 		list($path, $name) = \Sabre_DAV_URLUtil::splitPath($this->path);
@@ -230,9 +239,34 @@ class OC_Connector_Sabre_File extends OC_Connector_Sabre_Node implements Sabre_D
 		}
 
 		if ($chunk_handler->isComplete()) {
-			$newPath = $path . '/' . $info['name'];
-			$chunk_handler->file_assemble($newPath);
-			return OC_Connector_Sabre_Node::getETagPropertyForPath($newPath);
+
+			// we first assembly the target file as a part file
+			$partFile = $path . '/' . $info['name'] . '.ocTransferId' . $info['transferid'] . '.part';
+			$chunk_handler->file_assemble($partFile);
+
+			// here is the final atomic rename
+			$fs = $this->getFS();
+			$targetPath = $path . '/' . $info['name'];
+			$renameOkay = $fs->rename($partFile, $targetPath);
+			$fileExists = $fs->file_exists($targetPath);
+			if ($renameOkay === false || $fileExists === false) {
+				\OC_Log::write('webdav', '\OC\Files\Filesystem::rename() failed', \OC_Log::ERROR);
+				// only delete if an error occurred and the target file was already created
+				if ($fileExists) {
+					$fs->unlink($targetPath);
+				}
+				throw new Sabre_DAV_Exception('Could not rename part file assembled from chunks');
+			}
+
+			// allow sync clients to send the mtime along in a header
+			$mtime = OC_Request::hasModificationTime();
+			if ($mtime !== false) {
+				if($fs->touch($targetPath, $mtime)) {
+					header('X-OC-MTime: accepted');
+				}
+			}
+
+			return OC_Connector_Sabre_Node::getETagPropertyForPath($targetPath);
 		}
 
 		return null;

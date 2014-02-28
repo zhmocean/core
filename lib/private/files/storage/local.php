@@ -203,14 +203,9 @@ if (\OC_Util::runningOnWindows()) {
 			return $return;
 		}
 
-		public function getMimeType($path) {
-			if ($this->isReadable($path)) {
-				return \OC_Helper::getMimeType($this->datadir . $path);
-			} else {
-				return false;
-			}
-		}
-
+		/**
+		 * @param string $dir
+		 */
 		private function delTree($dir) {
 			$dirRelative = $dir;
 			$dir = $this->datadir . $dir;
@@ -232,6 +227,9 @@ if (\OC_Util::runningOnWindows()) {
 			return $return;
 		}
 
+		/**
+		 * @param string $fullPath
+		 */
 		private static function getFileSizeFromOS($fullPath) {
 			$name = strtolower(php_uname('s'));
 			// Windows OS: we use COM to access the filesystem
@@ -264,7 +262,7 @@ if (\OC_Util::runningOnWindows()) {
 
 		public function free_space($path) {
 			$space = @disk_free_space($this->datadir . $path);
-			if ($space === false) {
+			if ($space === false || is_null($space)) {
 				return \OC\Files\SPACE_UNKNOWN;
 			}
 			return $space;
@@ -282,6 +280,9 @@ if (\OC_Util::runningOnWindows()) {
 			return $this->datadir . $path;
 		}
 
+		/**
+		 * @param string $query
+		 */
 		protected function searchInDir($query, $dir = '') {
 			$files = array();
 			foreach (scandir($this->datadir . $dir) as $item) {
@@ -305,6 +306,13 @@ if (\OC_Util::runningOnWindows()) {
 		 */
 		public function hasUpdated($path, $time) {
 			return $this->filemtime($path) > $time;
+		}
+
+		/**
+		 * {@inheritdoc}
+		 */
+		public function isLocal() {
+			return true;
 		}
 	}
 }

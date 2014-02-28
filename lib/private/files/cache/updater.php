@@ -8,8 +8,6 @@
 
 namespace OC\Files\Cache;
 
-use OCP\Util;
-
 /**
  * listen to filesystem hooks and change the cache accordingly
  */
@@ -59,9 +57,13 @@ class Updater {
 		 */
 		list($storage, $internalPath) = self::resolvePath($path);
 		if ($storage) {
+			$parent = dirname($internalPath);
+			if ($parent === '.') {
+				$parent = '';
+			}
 			$cache = $storage->getCache($internalPath);
 			$cache->remove($internalPath);
-			$cache->correctFolderSize($internalPath);
+			$cache->correctFolderSize($parent);
 			self::correctFolder($path, time());
 			self::correctParentStorageMtime($storage, $internalPath);
 		}
@@ -86,6 +88,12 @@ class Updater {
 			if ($storageFrom === $storageTo) {
 				$cache = $storageFrom->getCache($internalFrom);
 				$cache->move($internalFrom, $internalTo);
+				if (pathinfo($internalFrom, PATHINFO_EXTENSION) !== pathinfo($internalTo, PATHINFO_EXTENSION)) {
+					// redetect mime type change
+					$mimeType = $storageTo->getMimeType($internalTo);
+					$fileId = $storageTo->getCache()->getId($internalTo);
+					$storageTo->getCache()->update($fileId, array('mimetype' => $mimeType));
+				}
 				$cache->correctFolderSize($internalFrom);
 				$cache->correctFolderSize($internalTo);
 				self::correctFolder($from, time());
@@ -102,7 +110,7 @@ class Updater {
 	/**
 	 * @brief get file owner and path
 	 * @param string $filename
-	 * @return array with the oweners uid and the owners path
+	 * @return string[] with the oweners uid and the owners path
 	 */
 	private static function getUidAndFilename($filename) {
 
@@ -142,7 +150,7 @@ class Updater {
 				$cache->update($id, array('mtime' => $time, 'etag' => $storage->getETag($internalPath)));
 				if ($realPath !== '') {
 					$realPath = dirname($realPath);
-					if($realPath === '/') {
+					if($realPath === DIRECTORY_SEPARATOR ) {
 						$realPath = "";
 					}
 					// check storage for parent in case we change the storage in this step

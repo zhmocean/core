@@ -36,8 +36,10 @@ OCP\Util::addscript('files', 'filelist');
 OCP\App::setActiveNavigationEntry('files_index');
 // Load the files
 $dir = isset($_GET['dir']) ? stripslashes($_GET['dir']) : '';
+$dir = \OC\Files\Filesystem::normalizePath($dir);
+$dirInfo = \OC\Files\Filesystem::getFileInfo($dir);
 // Redirect if directory does not exist
-if (!\OC\Files\Filesystem::is_dir($dir . '/')) {
+if (!$dirInfo->getType() === 'dir') {
 	header('Location: ' . OCP\Util::getScriptName() . '');
 	exit();
 }
@@ -62,7 +64,6 @@ $files = array();
 $user = OC_User::getUser();
 if (\OC\Files\Cache\Upgrade::needUpgrade($user)) { //dont load anything if we need to upgrade the cache
 	$needUpgrade = true;
-	$freeSpace = 0;
 } else {
 	if ($isIE8){
 		// after the redirect above, the URL will have a format
@@ -76,9 +77,10 @@ if (\OC\Files\Cache\Upgrade::needUpgrade($user)) { //dont load anything if we ne
 	else{
 		$files = \OCA\Files\Helper::getFiles($dir);
 	}
-	$freeSpace = \OC\Files\Filesystem::free_space($dir);
 	$needUpgrade = false;
 }
+
+$config = \OC::$server->getConfig();
 
 // Make breadcrumb
 $breadcrumb = \OCA\Files\Helper::makeBreadcrumb($dir);
@@ -93,7 +95,7 @@ $breadcrumbNav = new OCP\Template('files', 'part.breadcrumb', '');
 $breadcrumbNav->assign('breadcrumb', $breadcrumb);
 $breadcrumbNav->assign('baseURL', OCP\Util::linkTo('files', 'index.php') . '?dir=');
 
-$permissions = \OCA\Files\Helper::getDirPermissions($dir);
+$permissions = $dirInfo->getPermissions();
 
 if ($needUpgrade) {
 	OCP\Util::addscript('files', 'upgrade');
@@ -102,12 +104,13 @@ if ($needUpgrade) {
 } else {
 	// information about storage capacities
 	$storageInfo=OC_Helper::getStorageInfo($dir);
+	$freeSpace=$storageInfo['free'];
+	$uploadLimit=OCP\Util::uploadLimit();
 	$maxUploadFilesize=OCP\Util::maxUploadFilesize($dir);
-	$publicUploadEnabled = \OC_Appconfig::getValue('core', 'shareapi_allow_public_upload', 'yes');
+	$publicUploadEnabled = $config->getAppValue('core', 'shareapi_allow_public_upload', 'yes');
 	// if the encryption app is disabled, than everything is fine (INIT_SUCCESSFUL status code)
 	$encryptionInitStatus = 2;
 	if (OC_App::isEnabled('files_encryption')) {
-		$publicUploadEnabled = 'no';
 		$session = new \OCA\Encryption\Session(new \OC\Files\View('/'));
 		$encryptionInitStatus = $session->getInitialized();
 	}
@@ -128,21 +131,23 @@ if ($needUpgrade) {
 	$tmpl = new OCP\Template('files', 'index', 'user');
 	$tmpl->assign('fileList', $list->fetchPage());
 	$tmpl->assign('breadcrumb', $breadcrumbNav->fetchPage());
-	$tmpl->assign('dir', \OC\Files\Filesystem::normalizePath($dir));
+	$tmpl->assign('dir', $dir);
 	$tmpl->assign('isCreatable', $isCreatable);
 	$tmpl->assign('permissions', $permissions);
 	$tmpl->assign('files', $files);
 	$tmpl->assign('trash', $trashEnabled);
 	$tmpl->assign('trashEmpty', $trashEmpty);
-	$tmpl->assign('uploadMaxFilesize', $maxUploadFilesize);
+	$tmpl->assign('uploadMaxFilesize', $maxUploadFilesize); // minimium of freeSpace and uploadLimit
 	$tmpl->assign('uploadMaxHumanFilesize', OCP\Util::humanFileSize($maxUploadFilesize));
+	$tmpl->assign('freeSpace', $freeSpace);
+	$tmpl->assign('uploadLimit', $uploadLimit); // PHP upload limit
 	$tmpl->assign('allowZipDownload', intval(OCP\Config::getSystemValue('allowZipDownload', true)));
 	$tmpl->assign('usedSpacePercent', (int)$storageInfo['relative']);
 	$tmpl->assign('isPublic', false);
 	$tmpl->assign('publicUploadEnabled', $publicUploadEnabled);
 	$tmpl->assign("encryptedFiles", \OCP\Util::encryptedFiles());
-	$tmpl->assign("mailNotificationEnabled", \OC_Appconfig::getValue('core', 'shareapi_allow_mail_notification', 'yes'));
-	$tmpl->assign("allowShareWithLink", \OC_Appconfig::getValue('core', 'shareapi_allow_links', 'yes'));
+	$tmpl->assign("mailNotificationEnabled", $config->getAppValue('core', 'shareapi_allow_mail_notification', 'yes'));
+	$tmpl->assign("allowShareWithLink", $config->getAppValue('core', 'shareapi_allow_links', 'yes'));
 	$tmpl->assign("encryptionInitStatus", $encryptionInitStatus);
 	$tmpl->assign('disableSharing', false);
 	$tmpl->assign('ajaxLoad', $ajaxLoad);

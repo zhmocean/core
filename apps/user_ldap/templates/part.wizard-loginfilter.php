@@ -1,7 +1,7 @@
 <fieldset id="ldapWizard3">
 	<div>
 		<p>
-			<?php p($l->t('What attribute shall be used as login name:'));?>
+			<?php p($l->t('Users login with this attribute:'));?>
 		</p>
 		<p>
 			<label for="ldap_loginfilter_username">
@@ -27,6 +27,16 @@
 			<select id="ldap_loginfilter_attributes" multiple="multiple"
 			 name="ldap_loginfilter_attributes">
 			</select>
+		</p>
+		<p>
+			<label><a id='toggleRawLoginFilter'>↓ <?php p($l->t('Edit raw filter instead'));?></a></label>
+		</p>
+		<p id="rawLoginFilterContainer" class="invisible">
+			<input type="text" id="ldap_login_filter" name="ldap_login_filter"
+				class="lwautosave"
+				placeholder="<?php p($l->t('Raw LDAP filter'));?>"
+				title="<?php p($l->t('Defines the filter to apply, when login is attempted. %%uid replaces the username in the login action. Example: "uid=%%uid"'));?>"
+			/>
 		</p>
 		<p>
 			<div class="ldapWizardInfo invisible">&nbsp;</div>

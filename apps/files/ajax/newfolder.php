@@ -23,8 +23,17 @@ if(trim($foldername) === '') {
 	exit();
 }
 
-if(strpos($foldername, '/') !== false) {
-	$result['data'] = array('message' => $l10n->t('Folder name must not contain "/". Please choose a different name.'));
+if(!OCP\Util::isValidFileName($foldername)) {
+	$result['data'] = array('message' => (string)$l10n->t("Invalid name, '\\', '/', '<', '>', ':', '\"', '|', '?' and '*' are not allowed."));
+	OCP\JSON::error($result);
+	exit();
+}
+
+if (!\OC\Files\Filesystem::file_exists($dir . '/')) {
+	$result['data'] = array('message' => (string)$l10n->t(
+			'The target folder has been moved or deleted.'),
+			'code' => 'targetnotfound'
+		);
 	OCP\JSON::error($result);
 	exit();
 }

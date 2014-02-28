@@ -50,8 +50,9 @@ class Connection extends LDAPUtility {
 		parent::__construct($ldap);
 		$this->configPrefix = $configPrefix;
 		$this->configID = $configID;
-		$this->configuration = new Configuration($configPrefix);
-		$memcache = new \OC\Memcache\Factory();
+		$this->configuration = new Configuration($configPrefix,
+												 !is_null($configID));
+		$memcache = \OC::$server->getMemCacheFactory();
 		if($memcache->isAvailable()) {
 			$this->cache = $memcache->create();
 		} else {
@@ -139,6 +140,9 @@ class Connection extends LDAPUtility {
 		return $prefix.md5($key);
 	}
 
+	/**
+	 * @param string $key
+	 */
 	public function getFromCache($key) {
 		if(!$this->configured) {
 			$this->readConfiguration();
@@ -155,6 +159,9 @@ class Connection extends LDAPUtility {
 		return unserialize(base64_decode($this->cache->get($key)));
 	}
 
+	/**
+	 * @param string $key
+	 */
 	public function isCached($key) {
 		if(!$this->configured) {
 			$this->readConfiguration();
@@ -166,6 +173,9 @@ class Connection extends LDAPUtility {
 		return $this->cache->hasKey($key);
 	}
 
+	/**
+	 * @param string $key
+	 */
 	public function writeToCache($key, $value) {
 		if(!$this->configured) {
 			$this->readConfiguration();
@@ -200,7 +210,7 @@ class Connection extends LDAPUtility {
 	 * @brief set LDAP configuration with values delivered by an array, not read from configuration
 	 * @param $config array that holds the config parameters in an associated array
 	 * @param &$setParameters optional; array where the set fields will be given to
-	 * @return true if config validates, false otherwise. Check with $setParameters for detailed success on single parameters
+	 * @return boolean true if config validates, false otherwise. Check with $setParameters for detailed success on single parameters
 	 */
 	public function setConfiguration($config, &$setParameters = null) {
 		if(is_null($setParameters)) {

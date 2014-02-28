@@ -21,6 +21,7 @@ class OC_JSON{
 
 	/**
 	* Check if the app is enabled, send json error msg if not
+	* @param string $app
 	*/
 	public static function checkAppEnabled($app) {
 		if( !OC_App::isEnabled($app)) {
@@ -63,6 +64,20 @@ class OC_JSON{
 			exit();
 		}
 	}
+
+	/**
+	 * Check is a given user exists - send json error msg if not
+	 * @param string $user
+	 */
+	public static function checkUserExists($user) {
+		if (!OCP\User::userExists($user)) {
+			$l = OC_L10N::get('lib');
+			OCP\JSON::error(array('data' => array('message' => $l->t('Unknown user'))));
+			exit;
+		}
+	}
+
+
 
 	/**
 	* Check if the user is a subadmin, send json error msg if not
@@ -109,7 +124,16 @@ class OC_JSON{
 		if($setContentType) {
 			self::setContentTypeHeader();
 		}
-		array_walk_recursive($data, array('OC_JSON', 'to_string'));
-		echo json_encode($data);
+		echo self::encode($data);
+	}
+
+	/**
+	 * Encode JSON
+	 */
+	public static function encode($data) {
+		if (is_array($data)) {
+			array_walk_recursive($data, array('OC_JSON', 'to_string'));
+		}
+		return json_encode($data);
 	}
 }

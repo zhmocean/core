@@ -38,7 +38,7 @@ class OC_App{
 
 	/**
 	 * @brief clean the appid
-	 * @param $app Appid that needs to be cleaned
+	 * @param string|boolean $app Appid that needs to be cleaned
 	 * @return string
 	 */
 	public static function cleanAppId($app) {
@@ -63,23 +63,12 @@ class OC_App{
 		ob_start();
 		foreach( $apps as $app ) {
 			if((is_null($types) or self::isType($app, $types)) && !in_array($app, self::$loadedApps)) {
-				self::loadApp($app);
 				self::$loadedApps[] = $app;
+				self::loadApp($app);
 			}
 		}
 		ob_end_clean();
 
-		if (!defined('DEBUG') || !DEBUG) {
-			if (is_null($types)
-				&& empty(OC_Util::$coreScripts)
-				&& empty(OC_Util::$coreStyles)) {
-				OC_Util::$coreScripts = OC_Util::$scripts;
-				OC_Util::$scripts = array();
-				OC_Util::$coreStyles = OC_Util::$styles;
-				OC_Util::$styles = array();
-			}
-		}
-		// return
 		return true;
 	}
 
@@ -166,20 +155,22 @@ class OC_App{
 	 * get all enabled apps
 	 */
 	private static $enabledAppsCache = array();
-	public static function getEnabledApps() {
+	public static function getEnabledApps($forceRefresh = false) {
 		if(!OC_Config::getValue('installed', false)) {
 			return array();
 		}
-		if(!empty(self::$enabledAppsCache)) {
+		if(!$forceRefresh && !empty(self::$enabledAppsCache)) {
 			return self::$enabledAppsCache;
 		}
 		$apps=array('files');
 		$sql = 'SELECT `appid` FROM `*PREFIX*appconfig`'
-			.' WHERE `configkey` = \'enabled\' AND `configvalue`=\'yes\'';
+			. ' WHERE `configkey` = \'enabled\' AND `configvalue`=\'yes\''
+			. ' ORDER BY `appid`';
 		if (OC_Config::getValue( 'dbtype', 'sqlite' ) === 'oci') {
 			//FIXME oracle hack: need to explicitly cast CLOB to CHAR for comparison
 			$sql = 'SELECT `appid` FROM `*PREFIX*appconfig`'
-			.' WHERE `configkey` = \'enabled\' AND to_char(`configvalue`)=\'yes\'';
+			. ' WHERE `configkey` = \'enabled\' AND to_char(`configvalue`)=\'yes\''
+			. ' ORDER BY `appid`';
 		}
 		$query = OC_DB::prepare( $sql );
 		$result=$query->execute();
@@ -259,7 +250,7 @@ class OC_App{
 	/**
 	 * @brief disables an app
 	 * @param string $app app
-	 * @return bool
+	 * @return boolean|null
 	 *
 	 * This function set an app as disabled in appconfig.
 	 */
@@ -340,7 +331,7 @@ class OC_App{
 
 	/**
 	 * @brief Returns the Settings Navigation
-	 * @return array
+	 * @return string
 	 *
 	 * This function returns an array containing all settings pages added. The
 	 * entries are sorted by the key 'order' ascending.
@@ -435,6 +426,7 @@ class OC_App{
 
 	/**
 	 * Get the path where to install apps
+	 * @return string
 	 */
 	public static function getInstallPath() {
 		if(OC_Config::getValue('appstoreenabled', true)==false) {
@@ -488,6 +480,7 @@ class OC_App{
 
 	/**
 	 * get the last version of the app, either from appinfo/version or from appinfo/info.xml
+	 * @return string
 	 */
 	public static function getAppVersion($appid) {
 		$file= self::getAppPath($appid).'/appinfo/version';
@@ -553,6 +546,10 @@ class OC_App{
 			}elseif($child->getName()=='description') {
 				$xml=(string)$child->asXML();
 				$data[$child->getName()]=substr($xml, 13, -14);//script <description> tags
+			}elseif($child->getName()=='documentation') {
+				foreach($child as $subchild) {
+					$data["documentation"][$subchild->getName()] = (string)$subchild;
+				}
 			}else{
 				$data[$child->getName()]=(string)$child;
 			}
@@ -564,7 +561,7 @@ class OC_App{
 
 	/**
 	 * @brief Returns the navigation
-	 * @return array
+	 * @return string
 	 *
 	 * This function returns an array containing all entries added. The
 	 * entries are sorted by the key 'order' ascending. Additional to the keys
@@ -632,6 +629,8 @@ class OC_App{
 
 	/**
 	 * register an admin form to be shown
+	 * @param string $app
+	 * @param string $page
 	 */
 	public static function registerAdmin($app, $page) {
 		self::$adminForms[]= $app.'/'.$page.'.php';
@@ -848,6 +847,7 @@ class OC_App{
 
 	/**
 	 * check if the app needs updating and update when needed
+	 * @param string $app
 	 */
 	public static function checkUpgrade($app) {
 		if (in_array($app, self::$checkedApps)) {

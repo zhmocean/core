@@ -32,6 +32,9 @@ class Shared_Cache extends Cache {
 	private $storage;
 	private $files = array();
 
+	/**
+	 * @param \OC\Files\Storage\Shared $storage
+	 */
 	public function __construct($storage) {
 		$this->storage = $storage;
 	}
@@ -92,12 +95,11 @@ class Shared_Cache extends Cache {
 		} else {
 			$query = \OC_DB::prepare(
 				'SELECT `fileid`, `storage`, `path`, `parent`, `name`, `mimetype`, `mimepart`,'
-				.' `size`, `mtime`, `encrypted`'
+				.' `size`, `mtime`, `encrypted`, `unencrypted_size`'
 				.' FROM `*PREFIX*filecache` WHERE `fileid` = ?');
 			$result = $query->execute(array($file));
 			$data = $result->fetchRow();
 			$data['fileid'] = (int)$data['fileid'];
-			$data['size'] = (int)$data['size'];
 			$data['mtime'] = (int)$data['mtime'];
 			$data['storage_mtime'] = (int)$data['storage_mtime'];
 			$data['encrypted'] = (bool)$data['encrypted'];
@@ -105,6 +107,12 @@ class Shared_Cache extends Cache {
 			$data['mimepart'] = $this->getMimetype($data['mimepart']);
 			if ($data['storage_mtime'] === 0) {
 				$data['storage_mtime'] = $data['mtime'];
+			}
+			if ($data['encrypted'] or ($data['unencrypted_size'] > 0 and $data['mimetype'] === 'httpd/unix-directory')) {
+				$data['encrypted_size'] = (int)$data['size'];
+				$data['size'] = (int)$data['unencrypted_size'];
+			} else {
+				$data['size'] = (int)$data['size'];
 			}
 			return $data;
 		}
@@ -123,11 +131,18 @@ class Shared_Cache extends Cache {
 			foreach ($files as &$file) {
 				$file['mimetype'] = $this->getMimetype($file['mimetype']);
 				$file['mimepart'] = $this->getMimetype($file['mimepart']);
+				$file['usersPath'] = 'files/Shared/' . ltrim($file['path'], '/');
 			}
 			return $files;
 		} else {
-			if ($cache = $this->getSourceCache($folder)) {
-				return $cache->getFolderContents($this->files[$folder]);
+			$cache = $this->getSourceCache($folder);
+			if ($cache) {
+				$sourceFolderContent = $cache->getFolderContents($this->files[$folder]);
+				foreach ($sourceFolderContent as $key => $c) {
+					$sourceFolderContent[$key]['usersPath'] = 'files/Shared/' . $folder . '/' . $c['name'];
+				}
+
+				return $sourceFolderContent;
 			}
 		}
 		return false;
@@ -248,19 +263,40 @@ class Shared_Cache extends Cache {
 	 * @return array
 	 */
 	public function searchByMime($mimetype) {
-
-		if (strpos($mimetype, '/')) {
-			$where = '`mimetype` = ? AND ';
-		} else {
-			$where = '`mimepart` = ? AND ';
+		$mimepart = null;
+		if (strpos($mimetype, '/') === false) {
+			$mimepart = $mimetype;
+			$mimetype = null;
 		}
 
-		$value = $this->getMimetypeId($mimetype);
+		// note: searchWithWhere is currently broken as it doesn't
+		// recurse into subdirs nor returns the correct
+		// file paths, so using getFolderContents() for now
 
-		return $this->searchWithWhere($where, $value);
-
+		$result = array();
+		$exploreDirs = array('');
+		while (count($exploreDirs) > 0) {
+			$dir = array_pop($exploreDirs);
+			$files = $this->getFolderContents($dir);
+			// no results?
+			if (!$files) {
+				continue;
+			}
+			foreach ($files as $file) {
+				if ($file['mimetype'] === 'httpd/unix-directory') {
+					$exploreDirs[] = ltrim($dir . '/' . $file['name'], '/');
+				}
+				else if (($mimepart && $file['mimepart'] === $mimepart) || ($mimetype && $file['mimetype'] === $mimetype)) {
+					// usersPath not reliable
+					//$file['path'] = $file['usersPath'];
+					$file['path'] = ltrim($dir . '/' . $file['name'], '/');
+					$result[] = $file;
+				}
+			}
+		}
+		return $result;
 	}
-	
+
 	/**
 	 * The maximum number of placeholders that can be used in an SQL query.
 	 * Value MUST be <= 1000 for oracle:
@@ -268,7 +304,7 @@ class Shared_Cache extends Cache {
 	 * FIXME we should get this from doctrine as other DBs allow a lot more placeholders
 	 */
 	const MAX_SQL_CHUNK_SIZE = 1000;
-	
+
 	/**
 	 * search for files with a custom where clause and value
 	 * the $wherevalue will be array_merge()d with the file id chunks
@@ -282,16 +318,16 @@ class Shared_Cache extends Cache {
 		$ids = $this->getAll();
 
 		$files = array();
-		
+
 		// divide into chunks
 		$chunks = array_chunk($ids, $chunksize);
-		
+
 		foreach ($chunks as $chunk) {
 			$placeholders = join(',', array_fill(0, count($chunk), '?'));
 			$sql = 'SELECT `fileid`, `storage`, `path`, `parent`, `name`, `mimetype`, `mimepart`, `size`, `mtime`,
 					`encrypted`, `unencrypted_size`, `etag`
 					FROM `*PREFIX*filecache` WHERE ' . $sqlwhere . ' `fileid` IN (' . $placeholders . ')';
-			
+
 			$stmt = \OC_DB::prepare($sql);
 
 			$result = $stmt->execute(array_merge(array($wherevalue), $chunk));
@@ -302,6 +338,12 @@ class Shared_Cache extends Cache {
 				}
 				$row['mimetype'] = $this->getMimetype($row['mimetype']);
 				$row['mimepart'] = $this->getMimetype($row['mimepart']);
+				if ($row['encrypted'] or ($row['unencrypted_size'] > 0 and $row['mimetype'] === 'httpd/unix-directory')) {
+					$row['encrypted_size'] = $row['size'];
+					$row['size'] = $row['unencrypted_size'];
+				} else {
+					$row['size'] = $row['size'];
+				}
 				$files[] = $row;
 			}
 		}
@@ -350,7 +392,7 @@ class Shared_Cache extends Cache {
 	 * use the one with the highest id gives the best result with the background scanner, since that is most
 	 * likely the folder where we stopped scanning previously
 	 *
-	 * @return string|bool the path of the folder or false when no folder matched
+	 * @return boolean the path of the folder or false when no folder matched
 	 */
 	public function getIncomplete() {
 		return false;

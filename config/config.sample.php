@@ -53,6 +53,9 @@ $CONFIG = array(
 /* The optional authentication for the proxy to use to connect to the internet. The format is: [username]:[password] */
 "proxyuserpwd" => "",
 
+/* List of trusted domains, to prevent host header poisoning ownCloud is only using these Host headers */
+'trusted_domains' => array('demo.owncloud.org'),
+
 /* Theme to use for ownCloud */
 "theme" => "",
 
@@ -79,6 +82,12 @@ $CONFIG = array(
 
 /* Domain name used by ownCloud for the sender mail address, e.g. no-reply@example.com */
 "mail_domain" => "example.com",
+
+/* FROM address used by ownCloud for the sender mail address, e.g. owncloud@example.com
+   This setting overwrites the built in 'sharing-noreply' and 'lostpassword-noreply'
+   FROM addresses, that ownCloud uses
+*/
+"mail_from_address" => "owncloud",
 
 /* Enable SMTP class debugging */
 "mail_smtpdebug" => false,
@@ -114,8 +123,20 @@ $CONFIG = array(
 /* Password to use for sendmail mail, depends on mail_smtpauth if this is used */
 "mail_smtppassword" => "",
 
+/* memcached servers (Only used when xCache, APC and APCu are absent.) */
+"memcached_servers" => array(
+	// hostname, port and optional weight. Also see:
+	// http://www.php.net/manual/en/memcached.addservers.php
+	// http://www.php.net/manual/en/memcached.addserver.php
+	array('localhost', 11211),
+	//array('other.host.local', 11211),
+),
+
 /* How long should ownCloud keep deleted files in the trash bin, default value:  30 days */
 'trashbin_retention_obligation' => 30,
+
+/* Disable/Enable auto expire for the trash bin, by default auto expire is enabled */
+'trashbin_auto_expire' => true,
 
 /* allow user to change his display name, if it is supported by the back-end */
 'allow_user_to_change_display_name' => true,
@@ -172,6 +193,13 @@ $CONFIG = array(
 /* Life time of a session after inactivity */
 "session_lifetime" => 60 * 60 * 24,
 
+/*
+ * Enable/disable session keep alive when a user is logged in in the Web UI.
+ * This is achieved by sending a "heartbeat" to the server to prevent
+ * the session timing out.
+ */
+"session_keepalive" => true,
+
 /* Custom CSP policy, changing this will overwrite the standard policy */
 "custom_csp_policy" => "default-src 'self'; script-src 'self' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; frame-src *; img-src *; font-src 'self' data:; media-src *",
 
@@ -184,7 +212,11 @@ $CONFIG = array(
  */
 // "datadirectory" => "",
 
-/* Enable maintenance mode to disable ownCloud */
+/* Enable maintenance mode to disable ownCloud
+   If you want to prevent users to login to ownCloud before you start doing some maintenance work,
+   you need to set the value of the maintenance parameter to true.
+   Please keep in mind that users who are already logged-in are kicked out of ownCloud instantly.
+*/
 "maintenance" => false,
 
 "apps_paths" => array(
@@ -231,4 +263,13 @@ $CONFIG = array(
 'openssl' => array(
 	//'config' => '/absolute/location/of/openssl.cnf',
 ),
+
+/* whether usage of the instance should be restricted to admin users only */
+'singleuser' => false,
+
+/* all css and js files will be served by the web server statically in one js file and ons css file*/
+'asset-pipeline.enabled' => false,
+
+ /* where mount.json file should be stored, defaults to data/mount.json */
+ 'mount_file' => '',
 );

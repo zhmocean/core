@@ -166,6 +166,16 @@ class Cache {
 	 */
 	public function getFolderContents($folder) {
 		$fileId = $this->getId($folder);
+		return $this->getFolderContentsById($fileId);
+	}
+
+	/**
+	 * get the metadata of all files stored in $folder
+	 *
+	 * @param int $fileId the file id of the folder
+	 * @return array
+	 */
+	public function getFolderContentsById($fileId) {
 		if ($fileId > -1) {
 			$sql = 'SELECT `fileid`, `storage`, `path`, `parent`, `name`, `mimetype`, `mimepart`, `size`, `mtime`,
 						   `storage_mtime`, `encrypted`, `unencrypted_size`, `etag`
@@ -177,6 +187,10 @@ class Cache {
 				$file['mimepart'] = $this->getMimetype($file['mimepart']);
 				if ($file['storage_mtime'] == 0) {
 					$file['storage_mtime'] = $file['mtime'];
+				}
+				if ($file['encrypted'] or ($file['unencrypted_size'] > 0 and $file['mimetype'] === 'httpd/unix-directory')) {
+					$file['encrypted_size'] = $file['size'];
+					$file['size'] = $file['unencrypted_size'];
 				}
 			}
 			return $files;
@@ -483,7 +497,7 @@ class Cache {
 	/**
 	 * update the folder size and the size of all parent folders
 	 *
-	 * @param $path
+	 * @param string|boolean $path
 	 */
 	public function correctFolderSize($path) {
 		$this->calculateFolderSize($path);
@@ -507,22 +521,34 @@ class Cache {
 		$entry = $this->get($path);
 		if ($entry && $entry['mimetype'] === 'httpd/unix-directory') {
 			$id = $entry['fileid'];
-			$sql = 'SELECT SUM(`size`), MIN(`size`) FROM `*PREFIX*filecache` '.
+			$sql = 'SELECT SUM(`size`) AS f1, MIN(`size`) AS f2, ' .
+				'SUM(`unencrypted_size`) AS f3 ' .
+				'FROM `*PREFIX*filecache` ' .
 				'WHERE `parent` = ? AND `storage` = ?';
 			$result = \OC_DB::executeAudited($sql, array($id, $this->getNumericStorageId()));
 			if ($row = $result->fetchRow()) {
-				list($sum, $min) = array_values($row);
+				list($sum, $min, $unencryptedSum) = array_values($row);
 				$sum = (int)$sum;
 				$min = (int)$min;
+				$unencryptedSum = (int)$unencryptedSum;
 				if ($min === -1) {
 					$totalSize = $min;
 				} else {
 					$totalSize = $sum;
 				}
+				$update = array();
 				if ($entry['size'] !== $totalSize) {
-					$this->update($id, array('size' => $totalSize));
+					$update['size'] = $totalSize;
 				}
-				
+				if ($entry['unencrypted_size'] !== $unencryptedSum) {
+					$update['unencrypted_size'] = $unencryptedSum;
+				}
+				if (count($update) > 0) {
+					$this->update($id, $update);
+				}
+				if ($totalSize !== -1 and $unencryptedSum > 0) {
+					$totalSize = $unencryptedSum;
+				}
 			}
 		}
 		return $totalSize;

@@ -48,7 +48,7 @@ class View {
 	 * change the root to a fake root
 	 *
 	 * @param string $fakeRoot
-	 * @return bool
+	 * @return boolean|null
 	 */
 	public function chroot($fakeRoot) {
 		if (!$fakeRoot == '') {
@@ -159,7 +159,11 @@ class View {
 	}
 
 	public function rmdir($path) {
-		return $this->basicOperation('rmdir', $path, array('delete'));
+		if ($this->is_dir($path)) {
+			return $this->basicOperation('rmdir', $path, array('delete'));
+		} else {
+			return false;
+		}
 	}
 
 	public function opendir($path) {
@@ -332,9 +336,25 @@ class View {
 	}
 
 	public function unlink($path) {
+		if ($path === '' || $path === '/') {
+			// do not allow deleting the root
+			return false;
+		}
+		$postFix = (substr($path, -1, 1) === '/') ? '/' : '';
+		$absolutePath = Filesystem::normalizePath($this->getAbsolutePath($path));
+		list($storage, $internalPath) = Filesystem::resolvePath($absolutePath . $postFix);
+		if (!$internalPath || $internalPath === '' || $internalPath === '/') {
+			// do not allow deleting the storage's root / the mount point
+			// because for some storages it might delete the whole contents
+			// but isn't supposed to work that way
+			return false;
+		}
 		return $this->basicOperation('unlink', $path, array('delete'));
 	}
 
+	/**
+	 * @param string $directory
+	 */
 	public function deleteAll($directory, $empty = false) {
 		return $this->rmdir($directory);
 	}
@@ -393,7 +413,7 @@ class View {
 						$result = $this->copy($path1, $path2);
 						if ($result === true) {
 							list($storage1, $internalPath1) = Filesystem::resolvePath($absolutePath1 . $postFix1);
-							$result = $storage1->deleteAll($internalPath1);
+							$result = $storage1->unlink($internalPath1);
 						}
 					} else {
 						$source = $this->fopen($path1 . $postFix1, 'r');
@@ -514,6 +534,8 @@ class View {
 						$source = $this->fopen($path1 . $postFix1, 'r');
 						$target = $this->fopen($path2 . $postFix2, 'w');
 						list($count, $result) = \OC_Helper::streamCopy($source, $target);
+						fclose($source);
+						fclose($target);
 					}
 				}
 				if ($this->shouldEmitHooks() && $result !== false) {
@@ -712,12 +734,15 @@ class View {
 			return false;
 		}
 		$defaultRoot = Filesystem::getRoot();
-		if($this->fakeRoot === $defaultRoot){
+		if ($this->fakeRoot === $defaultRoot) {
 			return true;
 		}
 		return (strlen($this->fakeRoot) > strlen($defaultRoot)) && (substr($this->fakeRoot, 0, strlen($defaultRoot) + 1) === $defaultRoot . '/');
 	}
 
+	/**
+	 * @param string $path
+	 */
 	private function runHooks($hooks, $path, $post = false) {
 		$path = $this->getHookPath($path);
 		$prefix = ($post) ? 'post_' : '';
@@ -762,16 +787,11 @@ class View {
 	 * get the filesystem info
 	 *
 	 * @param string $path
-	 * @return array
-	 *
-	 * returns an associative array with the following keys:
-	 * - size
-	 * - mtime
-	 * - mimetype
-	 * - encrypted
-	 * - versioned
+	 * @param boolean $includeMountPoints whether to add mountpoint sizes,
+	 * defaults to true
+	 * @return \OC\Files\FileInfo | false
 	 */
-	public function getFileInfo($path) {
+	public function getFileInfo($path, $includeMountPoints = true) {
 		$data = array();
 		if (!Filesystem::isValidPath($path)) {
 			return $data;
@@ -782,6 +802,7 @@ class View {
 		 * @var string $internalPath
 		 */
 		list($storage, $internalPath) = Filesystem::resolvePath($path);
+		$data = null;
 		if ($storage) {
 			$cache = $storage->getCache($internalPath);
 			$permissionsCache = $storage->getPermissionsCache($internalPath);
@@ -792,13 +813,15 @@ class View {
 				$scanner->scan($internalPath, Cache\Scanner::SCAN_SHALLOW);
 			} else {
 				$watcher = $storage->getWatcher($internalPath);
-				$watcher->checkUpdate($internalPath);
+				$data = $watcher->checkUpdate($internalPath);
 			}
 
-			$data = $cache->get($internalPath);
+			if (!is_array($data)) {
+				$data = $cache->get($internalPath);
+			}
 
 			if ($data and $data['fileid']) {
-				if ($data['mimetype'] === 'httpd/unix-directory') {
+				if ($includeMountPoints and $data['mimetype'] === 'httpd/unix-directory') {
 					//add the sizes of other mountpoints to the folder
 					$mountPoints = Filesystem::getMountPoints($path);
 					foreach ($mountPoints as $mountPoint) {
@@ -819,10 +842,13 @@ class View {
 				$data['permissions'] = $permissions;
 			}
 		}
+		if (!$data) {
+			return false;
+		}
 
 		$data = \OC_FileProxy::runPostProxies('getFileInfo', $path, $data);
 
-		return $data;
+		return new FileInfo($path, $storage, $internalPath, $data);
 	}
 
 	/**
@@ -830,7 +856,7 @@ class View {
 	 *
 	 * @param string $directory path under datadirectory
 	 * @param string $mimetype_filter limit returned content to this mimetype or mimepart
-	 * @return array
+	 * @return FileInfo[]
 	 */
 	public function getDirectoryContent($directory, $mimetype_filter = '') {
 		$result = array();
@@ -856,8 +882,13 @@ class View {
 				$watcher->checkUpdate($internalPath);
 			}
 
-			$files = $cache->getFolderContents($internalPath); //TODO: mimetype_filter
-			$permissions = $permissionsCache->getDirectoryPermissions($cache->getId($internalPath), $user);
+			$folderId = $cache->getId($internalPath);
+			$files = array();
+			$contents = $cache->getFolderContents($internalPath, $folderId); //TODO: mimetype_filter
+			foreach ($contents as $content) {
+				$files[] = new FileInfo($path . '/' . $content['name'], $storage, $content['path'], $content);
+			}
+			$permissions = $permissionsCache->getDirectoryPermissions($folderId, $user);
 
 			$ids = array();
 			foreach ($files as $i => $file) {
@@ -914,7 +945,7 @@ class View {
 									break;
 								}
 							}
-							$files[] = $rootEntry;
+							$files[] = new FileInfo($path . '/' . $rootEntry['name'], $subStorage, '', $rootEntry);
 						}
 					}
 				}
@@ -936,6 +967,7 @@ class View {
 				$result = $files;
 			}
 		}
+
 		return $result;
 	}
 
@@ -943,12 +975,15 @@ class View {
 	 * change file metadata
 	 *
 	 * @param string $path
-	 * @param array $data
+	 * @param array | \OCP\Files\FileInfo $data
 	 * @return int
 	 *
 	 * returns the fileid of the updated file
 	 */
 	public function putFileInfo($path, $data) {
+		if ($data instanceof FileInfo) {
+			$data = $data->getData();
+		}
 		$path = Filesystem::normalizePath($this->fakeRoot . '/' . $path);
 		/**
 		 * @var \OC\Files\Storage\Storage $storage
@@ -973,7 +1008,7 @@ class View {
 	 * search for files with the name matching $query
 	 *
 	 * @param string $query
-	 * @return array
+	 * @return FileInfo[]
 	 */
 	public function search($query) {
 		return $this->searchCommon('%' . $query . '%', 'search');
@@ -983,7 +1018,7 @@ class View {
 	 * search for files by mimetype
 	 *
 	 * @param string $mimetype
-	 * @return array
+	 * @return FileInfo[]
 	 */
 	public function searchByMime($mimetype) {
 		return $this->searchCommon($mimetype, 'searchByMime');
@@ -992,7 +1027,7 @@ class View {
 	/**
 	 * @param string $query
 	 * @param string $method
-	 * @return array
+	 * @return FileInfo[]
 	 */
 	private function searchCommon($query, $method) {
 		$files = array();
@@ -1006,8 +1041,9 @@ class View {
 			$results = $cache->$method($query);
 			foreach ($results as $result) {
 				if (substr($mountPoint . $result['path'], 0, $rootLength + 1) === $this->fakeRoot . '/') {
+					$internalPath = $result['path'];
 					$result['path'] = substr($mountPoint . $result['path'], $rootLength);
-					$files[] = $result;
+					$files[] = new FileInfo($mountPoint . $result['path'], $storage, $internalPath, $result);
 				}
 			}
 
@@ -1021,8 +1057,9 @@ class View {
 					$results = $cache->$method($query);
 					if ($results) {
 						foreach ($results as $result) {
+							$internalPath = $result['path'];
 							$result['path'] = $relativeMountPoint . $result['path'];
-							$files[] = $result;
+							$files[] = new FileInfo($mountPoint . $result['path'], $storage, $internalPath, $result);
 						}
 					}
 				}

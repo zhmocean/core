@@ -17,6 +17,8 @@ use OC\Hooks\BasicEmitter;
  * Hooks available in scope \OC\Files\Cache\Scanner:
  *  - scanFile(string $path, string $storageId)
  *  - scanFolder(string $path, string $storageId)
+ *  - postScanFile(string $path, string $storageId)
+ *  - postScanFolder(string $path, string $storageId)
  *
  * @package OC\Files\Cache
  */
@@ -120,7 +122,7 @@ class Scanner extends BasicEmitter {
 							$propagateETagChange = true;
 						}
 						// only reuse data if the file hasn't explicitly changed
-						if (isset($data['mtime']) && isset($cacheData['mtime']) && $data['mtime'] === $cacheData['mtime']) {
+						if (isset($data['storage_mtime']) && isset($cacheData['storage_mtime']) && $data['storage_mtime'] === $cacheData['storage_mtime']) {
 							if (($reuseExisting & self::REUSE_SIZE) && ($data['size'] === -1)) {
 								$data['size'] = $cacheData['size'];
 							}
@@ -154,6 +156,8 @@ class Scanner extends BasicEmitter {
 				}
 				if (!empty($newData)) {
 					$this->cache->put($file, $newData);
+					$this->emit('\OC\Files\Cache\Scanner', 'postScanFile', array($file, $this->storageId));
+					\OC_Hook::emit('\OC\Files\Cache\Scanner', 'post_scan_file', array('path' => $file, 'storage' => $this->storageId));
 				}
 			} else {
 				$this->cache->remove($file);
@@ -258,6 +262,7 @@ class Scanner extends BasicEmitter {
 			}
 			$this->cache->put($path, array('size' => $size));
 		}
+		$this->emit('\OC\Files\Cache\Scanner', 'postScanFolder', array($path, $this->storageId));
 		return $size;
 	}
 
@@ -281,7 +286,7 @@ class Scanner extends BasicEmitter {
 	public function backgroundScan() {
 		$lastPath = null;
 		while (($path = $this->cache->getIncomplete()) !== false && $path !== $lastPath) {
-			$this->scan($path);
+			$this->scan($path, self::SCAN_RECURSIVE, self::REUSE_ETAG);
 			$this->cache->correctFolderSize($path);
 			$lastPath = $path;
 		}

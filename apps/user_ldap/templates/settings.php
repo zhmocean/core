@@ -20,10 +20,6 @@
 			<h3><?php p($l->t('Connection Settings'));?></h3>
 			<div>
 				<p><label for="ldap_configuration_active"><?php p($l->t('Configuration Active'));?></label><input type="checkbox" id="ldap_configuration_active" name="ldap_configuration_active" value="1" data-default="<?php p($_['ldap_configuration_active_default']); ?>"  title="<?php p($l->t('When unchecked, this configuration will be skipped.'));?>" /></p>
-				<p><label for="ldap_login_filter"><?php p($l->t('User Login Filter'));?></label>
-				<input type="text" id="ldap_login_filter" name="ldap_login_filter"
-					data-default="<?php p($_['ldap_login_filter_default']); ?>"
-					title="<?php p($l->t('Defines the filter to apply, when login is attempted. %%uid replaces the username in the login action. Example: "uid=%%uid"'));?>" /></p>
 				<p><label for="ldap_backup_host"><?php p($l->t('Backup (Replica) Host'));?></label><input type="text" id="ldap_backup_host" name="ldap_backup_host" data-default="<?php p($_['ldap_backup_host_default']); ?>" title="<?php p($l->t('Give an optional backup host. It must be a replica of the main LDAP/AD server.'));?>"></p>
 				<p><label for="ldap_backup_port"><?php p($l->t('Backup (Replica) Port'));?></label><input type="number" id="ldap_backup_port" name="ldap_backup_port" data-default="<?php p($_['ldap_backup_port_default']); ?>"  /></p>
 				<p><label for="ldap_override_main_server"><?php p($l->t('Disable Main Server'));?></label><input type="checkbox" id="ldap_override_main_server" name="ldap_override_main_server" value="1" data-default="<?php p($_['ldap_override_main_server_default']); ?>"  title="<?php p($l->t('Only connect to the replica server.'));?>" /></p>
@@ -40,6 +36,7 @@
 				<p><label for="ldap_base_groups"><?php p($l->t('Base Group Tree'));?></label><textarea id="ldap_base_groups" name="ldap_base_groups" placeholder="<?php p($l->t('One Group Base DN per line'));?>" data-default="<?php p($_['ldap_base_groups_default']); ?>" title="<?php p($l->t('Base Group Tree'));?>"></textarea></p>
 				<p><label for="ldap_attributes_for_group_search"><?php p($l->t('Group Search Attributes'));?></label><textarea id="ldap_attributes_for_group_search" name="ldap_attributes_for_group_search" placeholder="<?php p($l->t('Optional; one attribute per line'));?>" data-default="<?php p($_['ldap_attributes_for_group_search_default']); ?>" title="<?php p($l->t('Group Search Attributes'));?>"></textarea></p>
 				<p><label for="ldap_group_member_assoc_attribute"><?php p($l->t('Group-Member association'));?></label><select id="ldap_group_member_assoc_attribute" name="ldap_group_member_assoc_attribute" data-default="<?php p($_['ldap_group_member_assoc_attribute_default']); ?>" ><option value="uniqueMember"<?php if (isset($_['ldap_group_member_assoc_attribute']) && ($_['ldap_group_member_assoc_attribute'] === 'uniqueMember')) p(' selected'); ?>>uniqueMember</option><option value="memberUid"<?php if (isset($_['ldap_group_member_assoc_attribute']) && ($_['ldap_group_member_assoc_attribute'] === 'memberUid')) p(' selected'); ?>>memberUid</option><option value="member"<?php if (isset($_['ldap_group_member_assoc_attribute']) && ($_['ldap_group_member_assoc_attribute'] === 'member')) p(' selected'); ?>>member (AD)</option></select></p>
+				<p><label for="ldap_nested_groups"><?php p($l->t('Nested Groups'));?></label><input type="checkbox" id="ldap_nested_groups" name="ldap_nested_groups" value="1" data-default="<?php p($_['ldap_nested_groups_default']); ?>"  title="<?php p($l->t('When switched on, groups that contain groups are supported. (Only works if the group member attribute contains DNs.)'));?>" /></p>
 			</div>
 			<h3><?php p($l->t('Special Attributes'));?></h3>
 			<div>

@@ -3,7 +3,7 @@
 namespace OC\AppFramework\Utility;
 
 // register 3rdparty autoloaders
-require_once __DIR__ . '/../../../../3rdparty/Pimple/Pimple.php';
+require_once 'Pimple/Pimple.php';
 
 /**
  * Class SimpleContainer
@@ -31,7 +31,7 @@ class SimpleContainer extends \Pimple implements \OCP\IContainer {
 	 * Created instance will be cached in case $shared is true.
 	 *
 	 * @param string $name name of the service to register another backend for
-	 * @param callable $closure the closure to be called on service creation
+	 * @param \Closure $closure the closure to be called on service creation
 	 */
 	function registerService($name, \Closure $closure, $shared = true)
 	{
