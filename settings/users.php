@@ -9,11 +9,11 @@ OC_Util::checkSubAdminUser();
 OC_App::loadApps();
 
 // We have some javascript foo!
-OC_Util::addScript( 'settings', 'users' );
-OC_Util::addScript( 'core', 'multiselect' );
-OC_Util::addScript( 'core', 'singleselect' );
-OC_Util::addScript('core', 'jquery.inview');
-OC_Util::addStyle( 'settings', 'settings' );
+OC_TemplateLayout::addScript( 'settings', 'users' );
+OC_TemplateLayout::addScript( 'core', 'multiselect' );
+OC_TemplateLayout::addScript( 'core', 'singleselect' );
+OC_TemplateLayout::addScript('core', 'jquery.inview');
+OC_TemplateLayout::addStyle( 'settings', 'settings' );
 OC_App::setActiveNavigationEntry( 'core_users' );
 
 $users = array();

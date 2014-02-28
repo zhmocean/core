@@ -6,9 +6,6 @@
  */
 
 class OC_Util {
-	public static $scripts=array();
-	public static $styles=array();
-	public static $headers=array();
 	private static $rootMounted=false;
 	private static $fsSetup=false;
 
@@ -210,59 +207,6 @@ class OC_Util {
 			/** @var $OC_Build string */
 			$session->set('OC_Build', $OC_Build);
 		}
-	}
-
-	/**
-	 * @brief add a javascript file
-	 *
-	 * @param string $application
-	 * @param string|null $file filename
-	 * @return void
-	 */
-	public static function addScript( $application, $file = null ) {
-		if ( is_null( $file )) {
-			$file = $application;
-			$application = "";
-		}
-		if ( !empty( $application )) {
-			self::$scripts[] = "$application/js/$file";
-		} else {
-			self::$scripts[] = "js/$file";
-		}
-	}
-
-	/**
-	 * @brief add a css file
-	 *
-	 * @param string $application
-	 * @param string|null $file filename
-	 * @return void
-	 */
-	public static function addStyle( $application, $file = null ) {
-		if ( is_null( $file )) {
-			$file = $application;
-			$application = "";
-		}
-		if ( !empty( $application )) {
-			self::$styles[] = "$application/css/$file";
-		} else {
-			self::$styles[] = "css/$file";
-		}
-	}
-
-	/**
-	 * @brief Add a custom element to the header
-	 * @param string $tag tag name of the element
-	 * @param array $attributes array of attributes for the element
-	 * @param string $text the text content for the element
-	 * @return void
-	 */
-	public static function addHeader( $tag, $attributes, $text='') {
-		self::$headers[] = array(
-			'tag'=>$tag,
-			'attributes'=>$attributes,
-			'text'=>$text
-		);
 	}
 
 	/**

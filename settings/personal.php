@@ -11,16 +11,16 @@ OC_App::loadApps();
 $defaults = new OC_Defaults(); // initialize themable default strings and urls
 
 // Highlight navigation entry
-OC_Util::addScript( 'settings', 'personal' );
-OC_Util::addStyle( 'settings', 'settings' );
-OC_Util::addScript( '3rdparty', 'strengthify/jquery.strengthify' );
-OC_Util::addStyle( '3rdparty', 'strengthify/strengthify' );
-OC_Util::addScript( '3rdparty', 'chosen/chosen.jquery.min' );
-OC_Util::addStyle( '3rdparty', 'chosen' );
-\OC_Util::addScript('files', 'jquery.fileupload');
+OC_TemplateLayout::addScript( 'settings', 'personal' );
+OC_TemplateLayout::addStyle( 'settings', 'settings' );
+OC_TemplateLayout::addScript( '3rdparty', 'strengthify/jquery.strengthify' );
+OC_TemplateLayout::addStyle( '3rdparty', 'strengthify/strengthify' );
+OC_TemplateLayout::addScript( '3rdparty', 'chosen/chosen.jquery.min' );
+OC_TemplateLayout::addStyle( '3rdparty', 'chosen' );
+\OC_TemplateLayout::addScript('files', 'jquery.fileupload');
 if (\OC_Config::getValue('enable_avatars', true) === true) {
-	\OC_Util::addScript('3rdparty/Jcrop', 'jquery.Jcrop.min');
-	\OC_Util::addStyle('3rdparty/Jcrop', 'jquery.Jcrop.min');
+	\OC_TemplateLayout::addScript('3rdparty/Jcrop', 'jquery.Jcrop.min');
+	\OC_TemplateLayout::addStyle('3rdparty/Jcrop', 'jquery.Jcrop.min');
 }
 
 // Highlight navigation entry

@@ -8,7 +8,7 @@
 OC_Util::checkLoggedIn();
 OC_App::loadApps();
 
-OC_Util::addStyle( 'settings', 'settings' );
+OC_TemplateLayout::addStyle( 'settings', 'settings' );
 OC_App::setActiveNavigationEntry( 'settings' );
 
 $tmpl = new OC_Template( 'settings', 'settings', 'user');

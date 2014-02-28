@@ -284,8 +284,8 @@ class OC {
 		if (self::needUpgrade()) {
 			if ($showTemplate && !OC_Config::getValue('maintenance', false)) {
 				OC_Config::setValue('theme', '');
-				OC_Util::addScript('config'); // needed for web root
-				OC_Util::addScript('update');
+				OC_TemplateLayout::addScript('config'); // needed for web root
+				OC_TemplateLayout::addScript('update');
 				$tmpl = new OC_Template('', 'update.admin', 'guest');
 				$tmpl->assign('version', OC_Util::getVersionString());
 				$tmpl->printPage();
@@ -300,42 +300,42 @@ class OC {
 	public static function initTemplateEngine() {
 		// Add the stuff we need always
 		// TODO: read from core/js/core.json
-		OC_Util::addScript("jquery-1.10.0.min");
-		OC_Util::addScript("jquery-migrate-1.2.1.min");
-		OC_Util::addScript("jquery-ui-1.10.0.custom");
-		OC_Util::addScript("jquery-showpassword");
-		OC_Util::addScript("jquery.infieldlabel");
-		OC_Util::addScript("jquery.placeholder");
-		OC_Util::addScript("jquery-tipsy");
-		OC_Util::addScript("compatibility");
-		OC_Util::addScript("jquery.ocdialog");
-		OC_Util::addScript("oc-dialogs");
-		OC_Util::addScript("js");
-		OC_Util::addScript("octemplate");
-		OC_Util::addScript("eventsource");
-		OC_Util::addScript("config");
-		//OC_Util::addScript( "multiselect" );
-		OC_Util::addScript('search', 'result');
-		OC_Util::addScript('router');
-		OC_Util::addScript("oc-requesttoken");
+		OC_TemplateLayout::addScript("jquery-1.10.0.min");
+		OC_TemplateLayout::addScript("jquery-migrate-1.2.1.min");
+		OC_TemplateLayout::addScript("jquery-ui-1.10.0.custom");
+		OC_TemplateLayout::addScript("jquery-showpassword");
+		OC_TemplateLayout::addScript("jquery.infieldlabel");
+		OC_TemplateLayout::addScript("jquery.placeholder");
+		OC_TemplateLayout::addScript("jquery-tipsy");
+		OC_TemplateLayout::addScript("compatibility");
+		OC_TemplateLayout::addScript("jquery.ocdialog");
+		OC_TemplateLayout::addScript("oc-dialogs");
+		OC_TemplateLayout::addScript("js");
+		OC_TemplateLayout::addScript("octemplate");
+		OC_TemplateLayout::addScript("eventsource");
+		OC_TemplateLayout::addScript("config");
+		//OC_TemplateLayout::addScript( "multiselect" );
+		OC_TemplateLayout::addScript('search', 'result');
+		OC_TemplateLayout::addScript('router');
+		OC_TemplateLayout::addScript("oc-requesttoken");
 
 		// avatars
 		if (\OC_Config::getValue('enable_avatars', true) === true) {
-			\OC_Util::addScript('placeholder');
-			\OC_Util::addScript('3rdparty', 'md5/md5.min');
-			\OC_Util::addScript('jquery.avatar');
-			\OC_Util::addScript('avatar');
+			\OC_TemplateLayout::addScript('placeholder');
+			\OC_TemplateLayout::addScript('3rdparty', 'md5/md5.min');
+			\OC_TemplateLayout::addScript('jquery.avatar');
+			\OC_TemplateLayout::addScript('avatar');
 		}
 
-		OC_Util::addStyle("styles");
-		OC_Util::addStyle("mobile");
-		OC_Util::addStyle("icons");
-		OC_Util::addStyle("apps");
-		OC_Util::addStyle("fixes");
-		OC_Util::addStyle("multiselect");
-		OC_Util::addStyle("jquery-ui-1.10.0.custom");
-		OC_Util::addStyle("jquery-tipsy");
-		OC_Util::addStyle("jquery.ocdialog");
+		OC_TemplateLayout::addStyle("styles");
+		OC_TemplateLayout::addStyle("mobile");
+		OC_TemplateLayout::addStyle("icons");
+		OC_TemplateLayout::addStyle("apps");
+		OC_TemplateLayout::addStyle("fixes");
+		OC_TemplateLayout::addStyle("multiselect");
+		OC_TemplateLayout::addStyle("jquery-ui-1.10.0.custom");
+		OC_TemplateLayout::addStyle("jquery-tipsy");
+		OC_TemplateLayout::addStyle("jquery.ocdialog");
 	}
 
 	public static function initSession() {
@@ -619,7 +619,7 @@ class OC {
 
 		if (OC_Config::getValue('installed', false) && !self::checkUpgrade(false)) {
 			if (OC_Appconfig::getValue('core', 'backgroundjobs_mode', 'ajax') == 'ajax') {
-				OC_Util::addScript('backgroundjobs');
+				OC_TemplateLayout::addScript('backgroundjobs');
 			}
 		}
 	}

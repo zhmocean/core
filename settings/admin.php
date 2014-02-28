@@ -8,9 +8,9 @@
 OC_Util::checkAdminUser();
 OC_App::loadApps();
 
-OC_Util::addStyle( "settings", "settings" );
-OC_Util::addScript( "settings", "admin" );
-OC_Util::addScript( "settings", "log" );
+OC_TemplateLayout::addStyle( "settings", "settings" );
+OC_TemplateLayout::addScript( "settings", "admin" );
+OC_TemplateLayout::addScript( "settings", "log" );
 OC_App::setActiveNavigationEntry( "admin" );
 
 $tmpl = new OC_Template( 'settings', 'admin', 'user');

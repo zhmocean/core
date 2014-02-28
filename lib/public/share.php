@@ -92,8 +92,8 @@ class Share {
 					'supportedFileExtensions' => $supportedFileExtensions
 				);
 				if(count(self::$backendTypes) === 1) {
-					\OC_Util::addScript('core', 'share');
-					\OC_Util::addStyle('core', 'share');
+					\OC_TemplateLayout::addScript('core', 'share');
+					\OC_TemplateLayout::addStyle('core', 'share');
 				}
 				return true;
 			}
