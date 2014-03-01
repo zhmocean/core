@@ -36,7 +36,14 @@ var OCdialogs = {
 	* @param modal make the dialog modal
 	*/
 	alert:function(text, title, callback, modal) {
-		this.message(text, title, 'alert', OCdialogs.OK_BUTTON, callback, modal);
+		this.message(
+			text,
+			title,
+			'alert',
+			OCdialogs.OK_BUTTON,
+			callback,
+			modal
+		);
 	},
 	/**
 	* displays info dialog
@@ -52,11 +59,19 @@ var OCdialogs = {
 	* displays confirmation dialog
 	* @param text content of dialog
 	* @param title dialog title
-	* @param callback which will be triggered when user presses YES or NO (true or false would be passed to callback respectively)
+	* @param callback which will be triggered when user presses YES or NO
+	*    (true or false would be passed to callback respectively)
 	* @param modal make the dialog modal
 	*/
 	confirm:function(text, title, callback, modal) {
-		this.message(text, title, 'notice', OCdialogs.YES_NO_BUTTONS, callback, modal);
+		this.message(
+			text,
+			title,
+			'notice',
+			OCdialogs.YES_NO_BUTTONS,
+			callback,
+			modal
+		);
 	},
 	/**
 	 * show a file picker to pick a file from
@@ -246,7 +261,7 @@ var OCdialogs = {
 					image.onload = function () {
 						var url = crop(image);
 						deferred.resolve(url);
-					}
+					};
 				};
 				reader.readAsArrayBuffer(file);
 			} else {

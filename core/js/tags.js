@@ -1,7 +1,13 @@
 OC.Tags= {
 	edit:function(type, cb) {
 		if(!type && !this.type) {
-			throw { name: 'MissingParameter', message: t('core', 'The object type is not specified.') };
+			throw {
+				name: 'MissingParameter',
+				message: t(
+					'core',
+					'The object type is not specified.'
+				)
+			};
 		}
 		type = type ? type : this.type;
 		var self = this;
@@ -25,11 +31,23 @@ OC.Tags= {
 				});
 				self.deleteButton = {
 					text: t('core', 'Delete'),
-					click: function() {self._deleteTags(self, type, self._selectedIds())}
+					click: function() {
+						self._deleteTags(
+							self,
+							type,
+							self._selectedIds()
+						);
+					}
 				};
 				self.addButton = {
 					text: t('core', 'Add'),
-					click: function() {self._addTag(self, type, self.$taginput.val())}
+					click: function() {
+						self._addTag(
+							self,
+							type,
+							self.$taginput.val()
+						);
+					}
 				};
 
 				self._fillTagList(type, self.$taglist);
@@ -181,7 +199,10 @@ OC.Tags= {
 		type = type ? type : this.type;
 		var defer = $.Deferred(),
 			self = this,
-			url = OC.Router.generate('core_tags_favorite', {type: type, id: id});
+			url = OC.Router.generate(
+				'core_tags_favorite',
+				{type: type, id: id}
+			);
 		$.post(url, function(response) {
 			if(response.status === 'success') {
 				defer.resolve(response);
@@ -205,7 +226,10 @@ OC.Tags= {
 		type = type ? type : this.type;
 		var defer = $.Deferred(),
 			self = this,
-			url = OC.Router.generate('core_tags_unfavorite', {type: type, id: id});
+			url = OC.Router.generate(
+				'core_tags_unfavorite',
+				{type: type, id: id}
+			);
 		$.post(url, function(response) {
 			if(response.status === 'success') {
 				defer.resolve();

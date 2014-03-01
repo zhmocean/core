@@ -32,37 +32,41 @@ OC.Router = {
 		var optional = true;
 		$(route.tokens).each(function(i, token) {
 			if ('text' === token[0]) {
-			    url = token[1] + url;
-			    optional = false;
+				url = token[1] + url;
+				optional = false;
 
-			    return;
+				return;
 			}
 
 			if ('variable' === token[0]) {
-			    if (false === optional || !(token[3] in route.defaults)
-				    || ((token[3] in params) && params[token[3]] != route.defaults[token[3]])) {
-				var value;
-				if (token[3] in params) {
-				    value = params[token[3]];
-				    delete unusedParams[token[3]];
-				} else if (token[3] in route.defaults) {
-				    value = route.defaults[token[3]];
-				} else if (optional) {
-				    return;
-				} else {
-				    throw new Error('The route "' + name + '" requires the parameter "' + token[3] + '".');
+				if (
+					false === optional ||
+					!(token[3] in route.defaults) ||
+					((token[3] in params) &&
+					params[token[3]] != route.defaults[token[3]])
+				) {
+					var value;
+					if (token[3] in params) {
+						value = params[token[3]];
+						delete unusedParams[token[3]];
+					} else if (token[3] in route.defaults) {
+						value = route.defaults[token[3]];
+					} else if (optional) {
+						return;
+					} else {
+						throw new Error('The route "' + name + '" requires the parameter "' + token[3] + '".');
+					}
+
+					var empty = true === value || false === value || '' === value;
+
+					if (!empty || !optional) {
+						url = token[1] + encodeURIComponent(value).replace(/%2F/g, '/') + url;
+					}
+
+					optional = false;
 				}
 
-				var empty = true === value || false === value || '' === value;
-
-				if (!empty || !optional) {
-				    url = token[1] + encodeURIComponent(value).replace(/%2F/g, '/') + url;
-				}
-
-				optional = false;
-			    }
-
-			    return;
+				return;
 			}
 
 			throw new Error('The token type "' + token[0] + '" is not supported.');
@@ -78,4 +82,4 @@ OC.Router = {
 
 		return OC.router_base_url + url;
 	}
-}
+};
