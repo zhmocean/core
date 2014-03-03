@@ -42,8 +42,10 @@ OC.Router = {
 				if (
 					false === optional ||
 					!(token[3] in route.defaults) ||
-					((token[3] in params) &&
-					params[token[3]] != route.defaults[token[3]])
+					(
+						(token[3] in params) &&
+						params[token[3]] != route.defaults[token[3]]
+					)
 				) {
 					var value;
 					if (token[3] in params) {
@@ -57,7 +59,7 @@ OC.Router = {
 						throw new Error('The route "' + name + '" requires the parameter "' + token[3] + '".');
 					}
 
-					var empty = true === value || false === value || '' === value;
+					var empty = (true === value || false === value || '' === value);
 
 					if (!empty || !optional) {
 						url = token[1] + encodeURIComponent(value).replace(/%2F/g, '/') + url;

@@ -72,7 +72,9 @@ function initL10N(app) {
 			//ex russian: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10< =4 && (n%100<10 or n%100>=20) ? 1 : 2)
 			//pf = "nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2)";
 			var pf = t.plural_form;
-			if (! /;\s*$/.test(pf)) { pf = pf.concat(';'); }
+			if (! /;\s*$/.test(pf)) {
+				pf = pf.concat(';');
+			}
 			/* We used to use eval, but it seems IE has issues with it.
 			 * We now use "new Function", though it carries a slightly
 			 * bigger performance hit.
