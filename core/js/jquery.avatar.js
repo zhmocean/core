@@ -79,7 +79,7 @@
 			var url = OC.Router.generate(
 				'core_avatar_get',
 				{user: user, size: size}
-			)+'?requesttoken='+oc_requesttoken;
+			)+'?requesttoken=' + oc_requesttoken;
 			$.get(url, function(result) {
 				if (typeof(result) === 'object') {
 					if (!hidedefault) {
@@ -94,10 +94,10 @@
 				} else {
 					$div.show();
 					if (ie8fix === true) {
-						var randomNumber = Math.floor(Math.random()*1000);
-						$div.html('<img src="'+url+'#'+randomNumber+'">');
+						var randomNumber = Math.floor(Math.random() * 1000);
+						$div.html('<img src="' + url + '#' + randomNumber + '">');
 					} else {
-						$div.html('<img src="'+url+'">');
+						$div.html('<img src="' + url + '">');
 					}
 				}
 				if(typeof callback === 'function') {
