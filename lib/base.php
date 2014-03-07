@@ -316,7 +316,6 @@ class OC {
 		OC_Util::addScript("config");
 		//OC_Util::addScript( "multiselect" );
 		OC_Util::addScript('search', 'result');
-		OC_Util::addScript('router');
 		OC_Util::addScript("oc-requesttoken");
 
 		// avatars
@@ -554,7 +553,8 @@ class OC {
 		OC_User::useBackend(new OC_User_Database());
 		OC_Group::useBackend(new OC_Group_Database());
 
-		if (isset($_SERVER['PHP_AUTH_USER']) && self::$session->exists('loginname')
+		$basic_auth = OC_Config::getValue('basic_auth', true);
+		if ($basic_auth && isset($_SERVER['PHP_AUTH_USER']) && self::$session->exists('loginname')
 			&& $_SERVER['PHP_AUTH_USER'] !== self::$session->get('loginname')) {
 			$sessionUser = self::$session->get('loginname');
 			$serverUser = $_SERVER['PHP_AUTH_USER'];
