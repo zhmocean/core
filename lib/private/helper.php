@@ -524,16 +524,18 @@ class OC_Helper {
 		if (!$source or !$target) {
 			return array(0, false);
 		}
-		$result = true;
 		$count = 0;
 		while (!feof($source)) {
-			if (($c = fwrite($target, fread($source, 8192))) === false) {
-				$result = false;
+			$buffer = fread($source, 8192);
+			$size = strlen($buffer);
+			$c = fwrite($target, $buffer);
+			if ($c === false || $c !== $size) {
+				return array($count, false);
 			} else {
 				$count += $c;
 			}
 		}
-		return array($count, $result);
+		return array($count, true);
 	}
 
 	/**

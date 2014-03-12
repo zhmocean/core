@@ -321,7 +321,13 @@ class View {
 							array(Filesystem::signal_param_path => $this->getHookPath($path))
 						);
 					}
-					\OC_FileProxy::runPostProxies('file_put_contents', $absolutePath, $count);
+					if ($result === false) {
+						// delete broken file
+						$this->unlink($path);
+					}
+					else {
+						\OC_FileProxy::runPostProxies('file_put_contents', $absolutePath, $count);
+					}
 					return $result;
 				} else {
 					return false;
