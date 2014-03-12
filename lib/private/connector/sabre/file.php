@@ -230,13 +230,40 @@ class OC_Connector_Sabre_File extends OC_Connector_Sabre_Node implements Sabre_D
 		}
 
 		if ($chunk_handler->isComplete()) {
+			if (isset($_SERVER['HTTP_OC_TOTAL_LENGTH'])) {
+				$totalSize = (int)$_SERVER['HTTP_OC_TOTAL_LENGTH'];
+			}
+			else {
+				$totalSize = $chunk_handler->getCurrentSize();
+			}
 
-			// we first assembly the target file as a part file
+			// we first assemble the target file into a part file
 			$partFile = $path . '/' . $info['name'] . '.ocTransferId' . $info['transferid'] . '.part';
-			$chunk_handler->file_assemble($partFile);
+
+			$fs = $this->getFS();
+			try {
+				$bytesWritten = $chunk_handler->file_assemble($partFile);
+			}
+			catch (\OC\InsufficientStorageException $e) {
+				\OC_Log::write(
+					'webdav', 'OC_FileChunking::file_assemble() failed, ' .
+					'expected filesize ' . $totalSize . ' got ' . $bytesWritten,
+					\OC_Log::ERROR
+				);
+				throw new Sabre_DAV_Exception_InsufficientStorage();
+			}
+			catch (Exception $e) {
+				throw new Sabre_DAV_Exception($e);
+			}
+
+			// might happen if free space changed while part file was written
+			if ($bytesWritten !== $totalSize) {
+				// delete incomplete part file
+				$fs->unlink($partpath);
+				throw new Sabre_DAV_Exception('Expected assembled file size ' . $totalSize . ' got ' . $bytesWritten);
+			}
 
 			// here is the final atomic rename
-			$fs = $this->getFS();
 			$targetPath = $path . '/' . $info['name'];
 			$renameOkay = $fs->rename($partFile, $targetPath);
 			$fileExists = $fs->file_exists($targetPath);

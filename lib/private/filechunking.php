@@ -61,17 +61,54 @@ class OC_FileChunking {
 		return $parts == $this->info['chunkcount'];
 	}
 
+	/**
+	 * Assembles the chunks into the file specified by the path.
+	 * Chunks are deleted afterwards.
+	 *
+	 * @param string $f target path
+	 *
+	 * @return assembled file size
+	 *
+	 * @throws \OC\InsufficientStorageException when file could not be fully
+	 * assembled due to lack of free space
+	 */
 	public function assemble($f) {
 		$cache = $this->getCache();
 		$prefix = $this->getPrefix();
 		$count = 0;
-		for($i=0; $i < $this->info['chunkcount']; $i++) {
+		for ($i = 0; $i < $this->info['chunkcount']; $i++) {
 			$chunk = $cache->get($prefix.$i);
-			$count += fwrite($f, $chunk);
+			// remove after reading to directly save space
+			$cache->remove($prefix.$i);
+			$bytesWritten = fwrite($f, $chunk);
+			if ($bytesWritten === false) {
+				// abort and clean up remaining chunks
+				$this->cleanup();
+				throw new Exception('Error writing chunk into part file');
+			}
+			if ($bytesWritten !== strlen($chunk)) {
+				// abort and clean up remaining chunks
+				$this->cleanup();
+				throw new \OC\InsufficientStorageException();
+			}
+			$count += $bytesWritten;
 		}
 
-		$this->cleanup();
 		return $count;
+	}
+
+	/**
+	 * Returns the size of the chunks already present
+	 * @return size in bytes
+	 */
+	public function getCurrentSize() {
+		$cache = $this->getCache();
+		$prefix = $this->getPrefix();
+		$total = 0;
+		for ($i = 0; $i < $this->info['chunkcount']; $i++) {
+			$total += $cache->size($prefix.$i);
+		}
+		return $total;
 	}
 
 	/**
@@ -124,6 +161,17 @@ class OC_FileChunking {
 		);
 	}
 
+	/**
+	 * Assembles the chunks into the file specified by the path.
+	 * Also triggers the relevant hooks and proxies.
+	 *
+	 * @param string $path target path
+	 *
+	 * @return assembled file size or false if file could not be created
+	 *
+	 * @throws \OC\InsufficientStorageException when file could not be fully
+	 * assembled due to lack of free space
+	 */
 	public function file_assemble($path) {
 		$absolutePath = \OC\Files\Filesystem::normalizePath(\OC\Files\Filesystem::getView()->getAbsolutePath($path));
 		$data = '';
@@ -155,8 +203,16 @@ class OC_FileChunking {
 				return false;
 			}
 			$target = \OC\Files\Filesystem::fopen($path, 'w');
-			if($target) {
-				$count = $this->assemble($target);
+			if ($target) {
+				try {
+					$count = $this->assemble($target);
+				}
+				catch (\OC\InsufficientStorageException $e) {
+					fclose($target);
+					// delete incomplete file
+					$target = \OC\Files\Filesystem::unlink($path);
+					throw $e;
+				}
 				fclose($target);
 				if(!$exists) {
 					OC_Hook::emit(
@@ -171,9 +227,9 @@ class OC_FileChunking {
 					array( \OC\Files\Filesystem::signal_param_path => $path)
 				);
 				OC_FileProxy::runPostProxies('file_put_contents', $absolutePath, $count);
-				return $count > 0;
-			}else{
-				return false;
+				return $count;
+			} else {
+				throw new Exception('Could not open target file for writing assembled chunks');
 			}
 		}
 	}

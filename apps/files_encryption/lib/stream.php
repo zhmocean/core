@@ -404,7 +404,12 @@ class Stream {
 				// Write the data chunk to disk. This will be
 				// attended to the last data chunk if the file
 				// being handled totals more than 6126 bytes
-				fwrite($this->handle, $encrypted);
+				$written = fwrite($this->handle, $encrypted);
+				if ($written !== strlen($encrypted)) {
+					\OCP\Util::writeLog('Encryption library', 'Not enough bytes written');
+					\OC_FileProxy::$enabled = $proxyStatus;
+					return 0;
+				}
 
 				// Remove the chunk we just processed from
 				// $data, leaving only unprocessed data in $data
