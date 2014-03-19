@@ -1036,7 +1036,8 @@ class Access extends LDAPUtility {
 			return false;
 		}
 		$result=$testConnection->bind();
-		$this->connection->bind();
+		if ($result)
+			$this->connection->bind();
 		return $result;
 	}
 
