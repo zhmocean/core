@@ -286,8 +286,8 @@ $CONFIG = array(
  * cache directory and "$user" is the user.
  *
  */
-'cache_path' => ''
+'cache_path' => '',
 
-/* option whether to include external storage in quota calculation, defaults to false */
+/* EXPERIMENTAL: option whether to include external storage in quota calculation, defaults to false */
 'quota_include_external_storage' => false
 );
