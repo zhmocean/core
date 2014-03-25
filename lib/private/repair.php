@@ -20,6 +20,8 @@ class Repair extends BasicEmitter {
 	 */
 	public function __construct($stepClasses = array()) {
 		$this->stepClasses = $stepClasses;
+		// FIXME: hard-coded here for now
+		$this->addStep('\OC\Repair\RepairLegacyStorages');
 	}
 
 	/**
