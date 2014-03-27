@@ -23,20 +23,33 @@
 
 namespace OCA\user_ldap\lib;
 
-class Access extends LDAPUtility {
+class Access extends LDAPUtility implements user\IUserTools {
 	public $connection;
+	public $userManager;
 	//never ever check this var directly, always use getPagedSearchResultState
 	protected $pagedSearchedSuccessful;
 
 	protected $cookies = array();
 
-	public function __construct(Connection $connection, ILDAPWrapper $ldap) {
+	public function __construct(Connection $connection, ILDAPWrapper $ldap,
+		user\Manager $userManager) {
+			
 		parent::__construct($ldap);
 		$this->connection = $connection;
+		$this->userManager = $userManager;
+		$this->userManager->setLdapAccess($this);
 	}
 
 	private function checkConnection() {
 		return ($this->connection instanceof Connection);
+	}
+
+	/**
+	 * @brief returns the Connection instance
+	 * @return \OCA\user_ldap\lib\Connection
+	 */
+	public function getConnection() {
+		return $this->connection;
 	}
 
 	/**
@@ -617,6 +630,12 @@ class Access extends LDAPUtility {
 
 		if($insRows === 0) {
 			return false;
+		}
+
+		if($isUser) {
+			//make sure that email address is retrieved prior to login, so user
+			//will be notified when something is shared with him
+			$this->userManager->get($ocname)->update();
 		}
 
 		return true;
