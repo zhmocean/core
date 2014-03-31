@@ -22,7 +22,6 @@
 */
 
 OC_Util::checkAdminUser();
-OC_App::loadApps();
 
 // Load the files we need
 OC_TemplateLayout::addStyle( "settings", "settings" );
