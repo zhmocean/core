@@ -40,7 +40,7 @@ $dir = isset($_GET['dir']) ? stripslashes($_GET['dir']) : '';
 $dir = \OC\Files\Filesystem::normalizePath($dir);
 $dirInfo = \OC\Files\Filesystem::getFileInfo($dir);
 // Redirect if directory does not exist
-if (!$dirInfo->getType() === 'dir') {
+if (!$dirInfo || !$dirInfo->getType() === 'dir') {
 	header('Location: ' . OCP\Util::getScriptName() . '');
 	exit();
 }
@@ -97,7 +97,7 @@ $permissions = $dirInfo->getPermissions();
 $storageInfo=OC_Helper::getStorageInfo($dir);
 $freeSpace=$storageInfo['free'];
 $uploadLimit=OCP\Util::uploadLimit();
-$maxUploadFilesize=OCP\Util::maxUploadFilesize($dir);
+$maxUploadFilesize=OCP\Util::maxUploadFilesize($dir, $freeSpace);
 $publicUploadEnabled = $config->getAppValue('core', 'shareapi_allow_public_upload', 'yes');
 // if the encryption app is disabled, than everything is fine (INIT_SUCCESSFUL status code)
 $encryptionInitStatus = 2;
