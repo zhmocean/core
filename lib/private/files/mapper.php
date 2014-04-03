@@ -240,10 +240,14 @@ class Mapper
 		// trim ending dots (for security reasons and win compatibility)
 		$text = preg_replace('~\.+$~', '', $text);
 
-		if (empty($text)) {
-			return uniqid();
-		}
+		$components = explode('.', $text);
+		$components = array_map(function($item) {
+			if (empty($item)) {
+				return uniqid();
+			}
+			return $item;
+		}, $components);
 
-		return $text;
+		return implode('.', $components);
 	}
 }

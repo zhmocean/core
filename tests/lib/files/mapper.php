@@ -59,6 +59,10 @@ class Mapper extends \PHPUnit_Framework_TestCase {
 		$this->assertEquals('D:/folder.name.with.peri-ods/te-st-2.t-x-t', $this->mapper->slugifyPath('D:/folder.name.with.peri ods/te st.t x t', 2));
 		$this->assertEquals('D:/folder.name.with.peri-ods/te-st.t-x-t', $this->mapper->slugifyPath('D:/folder.name.with.peri ods/te st.t x t'));
 
-		
+		// with a non-ascii characters
+		$this->assertNotEquals('D:/.txt', $this->mapper->slugifyPath('D:/波.txt'));
+		$this->assertNotEquals('D:/.txt', $this->mapper->slugifyPath('D:/破.txt'));
+		$this->assertNotEquals('D:/.txt', $this->mapper->slugifyPath('D:/莫.txt'));
+
 	}
 }
