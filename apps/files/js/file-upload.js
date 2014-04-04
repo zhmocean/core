@@ -595,7 +595,7 @@ OC.Upload = {
 								{dir:$('#dir').val(), filename:name},
 								function(result) {
 									if (result.status === 'success') {
-										FileList.add(result.data, {hidden: hidden, insert: true});
+										FileList.add(result.data, {hidden: hidden, animate: true});
 									} else {
 										OC.dialogs.alert(result.data.message, t('core', 'Could not create file'));
 									}
@@ -608,7 +608,7 @@ OC.Upload = {
 								{dir:$('#dir').val(), foldername:name},
 								function(result) {
 									if (result.status === 'success') {
-										FileList.add(result.data, {hidden: hidden, insert: true});
+										FileList.add(result.data, {hidden: hidden, animate: true});
 									} else {
 										OC.dialogs.alert(result.data.message, t('core', 'Could not create folder'));
 									}
@@ -646,7 +646,7 @@ OC.Upload = {
 								var file = data;
 								$('#uploadprogressbar').fadeOut();
 
-								FileList.add(file, {hidden: hidden, insert: true});
+								FileList.add(file, {hidden: hidden, animate: true});
 							});
 							eventSource.listen('error',function(error) {
 								$('#uploadprogressbar').fadeOut();
