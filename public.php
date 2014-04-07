@@ -24,6 +24,9 @@ try {
 	$parts = explode('/', $file, 2);
 	$app = $parts[0];
 
+	print_r($_GET);
+	print_r($parts);
+
 	OC_Util::checkAppEnabled($app);
 	OC_App::loadApp($app);
 	OC_User::setIncognitoMode(true);

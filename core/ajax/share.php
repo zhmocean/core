@@ -44,6 +44,8 @@ if (isset($_POST['action']) && isset($_POST['itemType']) && isset($_POST['itemSo
 						$_POST['itemSourceName']
 					);
 
+					$token = base_convert($token, 16, 36);
+
 					if (is_string($token)) {
 						OC_JSON::success(array('data' => array('token' => $token)));
 					} else {
