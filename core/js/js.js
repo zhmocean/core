@@ -1044,6 +1044,14 @@ function initCore() {
 	if (window.matchMedia) {
 		setupMainMenu();
 	}
+
+
+	// App sidebar on mobile
+	var snapper = new Snap({
+		element: document.getElementById('app-content'),
+		disable: 'right',
+		maxPosition: 250
+	});
 }
 
 $(document).ready(initCore);

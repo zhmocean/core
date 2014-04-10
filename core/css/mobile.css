@@ -102,4 +102,16 @@
 }
 
 
+
+/* app sidebar toggle and swipe */
+#app-navigation {
+	width: 250px !important;
+}
+
+#app-content {
+	width: 100% !important;
+	left: 0 !important;
+}
+
+
 }
