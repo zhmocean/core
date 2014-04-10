@@ -109,7 +109,7 @@ input[type="button"],
 	margin: 3px 3px 3px 0;
 	padding: 7px 6px 5px;
 	font-size: 13px;
-	background: #fff;
+	background-color: #fff;
 	color: #333;
 	border: 1px solid #ddd;
 	outline: none;
@@ -281,6 +281,10 @@ input[type="submit"].enabled {
 	display: inline-block;
 	height: 36px;
 	padding: 7px 10px
+}
+
+#controls .button.hidden {
+	display: none;
 }
 
 #content { position:relative; height:100%; width:100%; }
@@ -921,6 +925,9 @@ div.crumb {
 	display: block;
 	background: url('../img/breadcrumb.svg') no-repeat right center;
 	height: 44px;
+}
+div.crumb.hidden {
+	display: none;
 }
 div.crumb a,
 div.crumb span {

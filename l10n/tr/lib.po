@@ -11,9 +11,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ownCloud\n"
 "Report-Msgid-Bugs-To: translations@owncloud.org\n"
-"POT-Creation-Date: 2014-04-02 01:55-0400\n"
-"PO-Revision-Date: 2014-04-01 19:31+0000\n"
-"Last-Translator: volkangezer <volkangezer@gmail.com>\n"
+"POT-Creation-Date: 2014-04-09 01:55-0400\n"
+"PO-Revision-Date: 2014-04-09 05:55+0000\n"
+"Last-Translator: I Robot\n"
 "Language-Team: Turkish (http://www.transifex.com/projects/p/owncloud/language/tr/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -282,8 +282,8 @@ msgstr "Web sunucunuz dosya aktarımı için düzgün bir şekilde yapılandır�
 msgid "Please double check the <a href='%s'>installation guides</a>."
 msgstr "Lütfen <a href='%s'>kurulum kılavuzlarını</a> iki kez kontrol edin."
 
-#: private/share/mailnotifications.php:73
-#: private/share/mailnotifications.php:119
+#: private/share/mailnotifications.php:72
+#: private/share/mailnotifications.php:118
 #, php-format
 msgid "%s shared »%s« with you"
 msgstr "%s sizinle »%s« paylaşımında bulundu"
@@ -295,7 +295,7 @@ msgstr "\"%s\" kategorisi bulunamadı"
 
 #: private/template/functions.php:133
 msgid "seconds ago"
-msgstr "saniye önce"
+msgstr "saniyeler önce"
 
 #: private/template/functions.php:134
 msgid "%n minute ago"
@@ -340,3 +340,21 @@ msgstr "geçen yıl"
 #: private/template/functions.php:145
 msgid "years ago"
 msgstr "yıl önce"
+
+#: private/user/manager.php:246
+msgid ""
+"Only the following characters are allowed in a username: \"a-z\", \"A-Z\", "
+"\"0-9\", and \"_.@-\""
+msgstr ""
+
+#: private/user/manager.php:251
+msgid "A valid username must be provided"
+msgstr ""
+
+#: private/user/manager.php:255
+msgid "A valid password must be provided"
+msgstr ""
+
+#: private/user/manager.php:260
+msgid "The username is already being used"
+msgstr ""

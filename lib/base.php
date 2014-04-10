@@ -305,6 +305,7 @@ class OC {
 		OC_TemplateLayout::addScript("jquery.placeholder");
 		OC_TemplateLayout::addScript("jquery-tipsy");
 		OC_TemplateLayout::addScript("compatibility");
+		OC_TemplateLayout::addScript("underscore");
 		OC_TemplateLayout::addScript("jquery.ocdialog");
 		OC_TemplateLayout::addScript("oc-dialogs");
 		OC_TemplateLayout::addScript("js");
