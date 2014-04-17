@@ -91,6 +91,7 @@
    <index>
     <name>ldap_dn_groups</name>
     <unique>true</unique>
+	   <primary>true</primary>
     <field>
      <name>ldap_dn</name>
     </field>
