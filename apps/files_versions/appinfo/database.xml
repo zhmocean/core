@@ -27,7 +27,16 @@
     <notnull>true</notnull>
     <length>50</length>
    </field>
-   
+
+	  <index>
+		  <name>user_index</name>
+		  <primary>true</primary>
+		  <field>
+			  <name>user</name>
+			  <sorting>ascending</sorting>
+		  </field>
+	  </index>
+
   </declaration>
 
  </table>
