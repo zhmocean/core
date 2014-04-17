@@ -442,6 +442,7 @@
 
 			<index>
 				<name>id_user_index</name>
+				<primary>true</primary>
 				<field>
 					<name>fileid</name>
 					<sorting>ascending</sorting>
