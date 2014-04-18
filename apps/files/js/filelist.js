@@ -609,7 +609,7 @@ window.FileList = {
 						},
 						success: function(result) {
 							if (!result || result.status === 'error') {
-								OC.dialogs.alert(result.data.message, t('core', 'Could not rename file'));
+								OC.dialogs.alert(result.data.message, t('files', 'Could not rename file'));
 								// revert changes
 								newname = oldname;
 								tr.attr('data-file', newname);
