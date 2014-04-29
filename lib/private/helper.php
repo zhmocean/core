@@ -890,7 +890,7 @@ class OC_Helper {
 	 */
 	public static function getStorageInfo($path, $rootInfo = null) {
 		// return storage info without adding mount points
-		if (is_null($rootInfo)) {
+		if (!$rootInfo) {
 			$rootInfo = \OC\Files\Filesystem::getFileInfo($path, false);
 		}
 		$used = $rootInfo->getSize();

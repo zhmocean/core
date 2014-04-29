@@ -348,7 +348,7 @@ class View {
 		$postFix = (substr($path, -1, 1) === '/') ? '/' : '';
 		$absolutePath = Filesystem::normalizePath($this->getAbsolutePath($path));
 		list($storage, $internalPath) = Filesystem::resolvePath($absolutePath . $postFix);
-		if (!($storage instanceof \OC\Files\Storage\Shared) &&
+		if (!($storage instanceof \OCA\Files_Sharing\ISharedStorage) &&
 				(!$internalPath || $internalPath === '' || $internalPath === '/')) {
 			// do not allow deleting the storage's root / the mount point
 			// because for some storages it might delete the whole contents
@@ -410,7 +410,7 @@ class View {
 				// if source and target are on the same storage we can call the rename operation from the
 				// storage. If it is a "Shared" file/folder we call always the rename operation of the
 				// shared storage to handle mount point renaming, etc correctly
-				if ($storage1 instanceof \OC\Files\Storage\Shared) {
+				if ($storage1 instanceof \OCA\Files_Sharing\ISharedStorage) {
 					if ($storage1) {
 						$result = $storage1->rename($absolutePath1, $absolutePath2);
 						\OC_FileProxy::runPostProxies('rename', $absolutePath1, $absolutePath2);
@@ -983,7 +983,7 @@ class View {
 							}
 							// do not allow renaming/deleting the mount point if they are not shared files/folders
 							// for shared files/folders we use the permissions given by the owner
-							if ($subStorage instanceof \OC\Files\Storage\Shared) {
+							if ($subStorage instanceof \OCA\Files_Sharing\ISharedStorage) {
 								$rootEntry['permissions'] = $permissions;
 							} else {
 								$rootEntry['permissions'] = $permissions & (\OCP\PERMISSION_ALL - (\OCP\PERMISSION_UPDATE | \OCP\PERMISSION_DELETE));
