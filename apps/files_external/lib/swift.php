@@ -53,8 +53,10 @@ class Swift extends \OC\Files\Storage\Common {
 	private static $tmpFiles = array();
 
 	/**
-	 * Object cache, map of path to object
-	 * @var array
+	 * Key value cache mapping path to data object. Maps path to
+	 * \OpenCloud\OpenStack\ObjectStorage\Resource\DataObject for existing
+	 * paths and path to false for not existing paths.
+	 * @var \OC\Cache\ArrayCache
 	 */
 	private $objectCache;
 
@@ -94,44 +96,24 @@ class Swift extends \OC\Files\Storage\Common {
 	 * or false if the object did not exist
 	 */
 	private function fetchObject($path) {
-		if (isset($this->objectCache[$path])) {
+		if ($this->objectCache->hasKey($path)) {
 			// might be "false" if object did not exist from last check
-			return $this->objectCache[$path];
+			return $this->objectCache->get($path);
 		}
 		try {
 			$object = $this->container->DataObject($path);
-			$this->cacheObject($path, $object);
+			$this->objectCache->set($path, $object);
 			return $object;
 		} catch (Exceptions\ObjFetchError $e) {
 			// this exception happens when the object does not exist, which
 			// is expected in most cases
 			\OCP\Util::writeLog('files_external', $e->getMessage(), \OCP\Util::DEBUG);
-			$this->cacheObject($path, false);
+			$this->objectCache->set($path, false);
 			return false;
 		} catch (Exceptions\HttpError $e) {
 			\OCP\Util::writeLog('files_external', $e->getMessage(), \OCP\Util::ERROR);
 			return false;
 		}
-	}
-
-	/**
-	 * Adds an object to the cache
-	 *
-	 * @param string $path
-	 * @param \OpenCloud\OpenStack\ObjectStorage\Resource\DataObject|bool $object
-	 * or false if the object is known to not exist
-	 */
-	private function cacheObject($path, $object) {
-		$this->objectCache[$path] = $object;
-	}
-
-	/**
-	 * Removes an object from the cache
-	 *
-	 * @param string $path
-	 */
-	private function uncacheObject($path) {
-		unset($this->objectCache[$path]);
 	}
 
 	/**
@@ -174,6 +156,7 @@ class Swift extends \OC\Files\Storage\Common {
 			$settings['tenantName'] = $params['tenant'];
 		}
 
+		$this->objectCache = new \OC\Cache\ArrayCache;
 		$this->anchor = new \OpenCloud\OpenStack($params['url'], $settings);
 
 		if (isset($params['timeout'])) {
@@ -211,8 +194,7 @@ class Swift extends \OC\Files\Storage\Common {
 				'name' => $path,
 				'content_type' => 'httpd/unix-directory'
 			));
-			// invalidate target object to force repopulation on fetch
-			$this->uncacheObject($path);
+			$this->objectCache->remove($path);
 		} catch (Exceptions\CreateUpdateError $e) {
 			\OCP\Util::writeLog('files_external', $e->getMessage(), \OCP\Util::ERROR);
 			return false;
@@ -257,7 +239,7 @@ class Swift extends \OC\Files\Storage\Common {
 				return false;
 			}
 			$object->Delete();
-			$this->uncacheObject($path . '/');
+			$this->objectCache->remove($path . '/');
 		} catch (Exceptions\DeleteError $e) {
 			\OCP\Util::writeLog('files_external', $e->getMessage(), \OCP\Util::ERROR);
 			return false;
@@ -355,7 +337,7 @@ class Swift extends \OC\Files\Storage\Common {
 				return false;
 			}
 			$object->Delete();
-			$this->uncacheObject($path);
+			$this->objectCache->remove($path);
 		} catch (Exceptions\DeleteError $e) {
 			\OCP\Util::writeLog('files_external', $e->getMessage(), \OCP\Util::ERROR);
 			return false;
@@ -451,8 +433,7 @@ class Swift extends \OC\Files\Storage\Common {
 				)
 			);
 			if ($object->UpdateMetadata($settings)) {
-				// invalidate target object to force repopulation on fetch
-				$this->uncacheObject($path);
+				$this->objectCache->remove($path);
 				return true;
 			}
 			return false;
@@ -469,8 +450,7 @@ class Swift extends \OC\Files\Storage\Common {
 				)
 			);
 			if ($object->Create($settings)) {
-				// invalidate target object to force repopulation on fetch
-				$this->uncacheObject($path);
+				$this->objectCache->remove($path);
 				return true;
 			}
 			return false;
@@ -492,8 +472,7 @@ class Swift extends \OC\Files\Storage\Common {
 					'name' => $path2,
 				));
 				$source->Copy($target);
-				// invalidate target object to force repopulation on fetch
-				$this->uncacheObject($path2);
+				$this->objectCache->remove($path2);
 			} catch (Exceptions\ObjectCopyError $e) {
 				\OCP\Util::writeLog('files_external', $e->getMessage(), \OCP\Util::ERROR);
 				return false;
@@ -513,8 +492,7 @@ class Swift extends \OC\Files\Storage\Common {
 					'name' => $path2 . '/',
 				));
 				$source->Copy($target);
-				// invalidate target object to force repopulation on fetch
-				$this->uncacheObject($path2);
+				$this->objectCache->remove($path2);
 			} catch (Exceptions\ObjectCopyError $e) {
 				\OCP\Util::writeLog('files_external', $e->getMessage(), \OCP\Util::ERROR);
 				return false;
@@ -584,8 +562,7 @@ class Swift extends \OC\Files\Storage\Common {
 			'name' => self::$tmpFiles[$tmpFile],
 			'content_type' => \OC_Helper::getMimeType($tmpFile)
 		), $tmpFile);
-		// invalidate target object to force repopulation on fetch
-		$this->uncacheObject(self::$tmpFiles[$tmpFile]);
+		$this->objectCache->remove(self::$tmpFiles[$tmpFile]);
 		unlink($tmpFile);
 	}
 
