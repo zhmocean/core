@@ -1,7 +1,7 @@
 <?php
 
 /**
- * ownCloud - ajax frontend
+ * ownCloud - Sharing overview page
  *
  * @author Vincent Petry
  * @copyright 2014 Vincent Petry <pvince81@owncloud.com>
@@ -21,7 +21,6 @@
  *
  */
 
-// Check if we are a user
 OCP\User::checkLoggedIn();
 
 // Load the files we need
@@ -35,8 +34,6 @@ OCP\Util::addscript('files', 'files');
 OCP\Util::addscript('files', 'filelist');
 
 OCP\App::setActiveNavigationEntry('files_sharing_index');
-
-$user = OC_User::getUser();
 
 OCP\Util::addscript('files_sharing', 'sharedfilelist');
 OCP\Util::addscript('files', 'keyboardshortcuts');
