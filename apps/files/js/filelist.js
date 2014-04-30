@@ -416,6 +416,7 @@ window.FileList = {
 			type = fileData.type || 'file',
 			mtime = parseInt(fileData.mtime, 10) || new Date().getTime(),
 			mime = fileData.mimetype,
+			path = fileData.path || this.getCurrentDirectory(),
 			linkUrl;
 		options = options || {};
 
@@ -457,10 +458,10 @@ window.FileList = {
 
 		// linkUrl
 		if (type === 'dir') {
-			linkUrl = FileList.linkTo(FileList.getCurrentDirectory() + '/' + name);
+			linkUrl = FileList.linkTo(fileData.path + '/' + name);
 		}
 		else {
-			linkUrl = Files.getDownloadUrl(name, FileList.getCurrentDirectory());
+			linkUrl = Files.getDownloadUrl(name, fileData.path);
 		}
 		td.append('<input id="select-' + fileData.id + '" type="checkbox" /><label for="select-' + fileData.id + '"></label>');
 		var linkElem = $('<a></a>').attr({
@@ -599,6 +600,7 @@ window.FileList = {
 		options = options || {};
 		var type = fileData.type || 'file',
 			mime = fileData.mimetype,
+			path = fileData.path || this.getCurrentDirectory(),
 			permissions = parseInt(fileData.permissions, 10) || 0;
 
 		if (fileData.isShareMountPoint) {
@@ -641,7 +643,7 @@ window.FileList = {
 			else {
 				// set the preview URL directly
 				var urlSpec = {
-						file: FileList.getCurrentDirectory() + '/' + fileData.name,
+						file: path + '/' + fileData.name,
 						c: fileData.etag
 					};
 				var previewUrl = Files.generatePreviewUrl(urlSpec);

@@ -1,4 +1,5 @@
 <?php
+$l = OC_L10N::get('files_sharing');
 
 OC::$CLASSPATH['OC_Share_Backend_File'] = 'files_sharing/lib/share/file.php';
 OC::$CLASSPATH['OC_Share_Backend_Folder'] = 'files_sharing/lib/share/folder.php';
@@ -18,3 +19,11 @@ OCP\Util::addScript('files_sharing', 'share');
 \OC_Hook::connect('OC_Filesystem', 'delete', '\OC\Files\Cache\Shared_Updater', 'deleteHook');
 \OC_Hook::connect('OC_Filesystem', 'post_rename', '\OC\Files\Cache\Shared_Updater', 'renameHook');
 \OC_Hook::connect('OC_Appconfig', 'post_set_value', '\OCA\Files\Share\Maintainer', 'configChangeHook');
+
+OCP\App::addNavigationEntry(array("id" => "files_sharing_index",
+	"order" => 0,
+	"href" => OCP\Util::linkTo("files_sharing", "index.php"),
+	// FIXME: find better icon
+	"icon" => OCP\Util::imagePath("core", "actions/share.svg"),
+	"name" => $l->t("Shares")));
+

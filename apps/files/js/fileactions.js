@@ -15,6 +15,15 @@ var FileActions = {
 	defaults: {},
 	icons: {},
 	currentFile: null,
+	/**
+	 * Clear registered file actions
+	 */
+	clear: function() {
+		this.actions = {};
+		this.defaults = {};
+		this.icons = {};
+		this.currentFile = null;
+	},
 	register: function (mime, name, permissions, icon, action, displayName) {
 		if (!FileActions.actions[mime]) {
 			FileActions.actions[mime] = {};
