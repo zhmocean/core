@@ -93,7 +93,6 @@ $nav = new OCP\Template('files', 'appnavigation', '');
 
 $nav->assign('trash', $trashEnabled);
 $nav->assign('trashEmpty', $trashEmpty);
-$nav->assign('hasSharedFiles', \OCA\Files\Helper::hasSharedFiles());
 
 OCP\Util::addscript('files', 'fileactions');
 OCP\Util::addscript('files', 'files');

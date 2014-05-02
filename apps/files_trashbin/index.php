@@ -41,7 +41,6 @@ $tmpl->assign('disableSharing', true);
 
 $nav = new OCP\Template('files', 'appnavigation', '');
 $nav->assign('trash', true);
-$nav->assign('hasSharedFiles', \OCA\Files\Helper::hasSharedFiles());
 
 $tmpl->assign('appNavigation', $nav);
 

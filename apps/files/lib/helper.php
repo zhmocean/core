@@ -128,12 +128,4 @@ class Helper
 		usort($content, array('\OCA\Files\Helper', 'fileCmp'));
 		return $content;
 	}
-
-	/**
-	 * Returns whether the current user has files shared with them
-	 * @return boolean true if shared files exist, false otherwise
-	 */
-	public static function hasSharedFiles() {
-		return \OC\Files\Filesystem::getView()->file_exists('/Shared');
-	}
 }

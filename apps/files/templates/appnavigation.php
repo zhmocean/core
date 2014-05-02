@@ -1,9 +1,6 @@
 <div id="app-navigation">
 	<ul>
 		<li class="allfiles"><a href="<?php p(OC_Helper::linkTo('files', '')) ?>"><?php p($l->t('All Files'));?></a></li>
-		<?php if ($_['hasSharedFiles']): ?>
-		<li class="sharedfiles"><a href="<?php p(OC_Helper::linkTo('files', 'index.php') . '?dir=/Shared') ?>"><?php p($l->t('Shared'));?></a></li>
-		<?php endif; ?>
 		<li class="sep"></li>
 		<?php if ($_['trash'] ): ?>
 		<li class="trash"><a href="<?php p(OC_Helper::linkTo('files_trashbin', 'index.php')) ?>"><?php p($l->t('Deleted files'));?></a></li>
