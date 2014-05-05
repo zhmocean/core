@@ -13,7 +13,7 @@
 	// for now until we have real inheritance...
 	var oldCreateRow = FileList._createRow;
 
-	var SharedFileList = _.extend(FileList, {
+	var SharedFileList = _.extend({}, FileList, {
 		appName: 'Shares',
 
 		SHARE_TYPE_TEXT: [
@@ -23,6 +23,8 @@
 			t('files_sharing', 'Public')
 		],
 
+		_sharedWithUser: false,
+
 		initialize: function() {
 			if (this.initialized) {
 				return;
@@ -30,6 +32,8 @@
 
 			// remove the default actions from the files app...
 			FileActions.clear();
+
+			this._sharedWithUser = false;
 
 			// TODO: FileList should not know about global elements
 			this.$el = $('#filestable');
@@ -45,6 +49,14 @@
 			this.fileSummary = this._createSummary();
 		},
 
+		/**
+		 * Compare two shares
+		 * @param share1 first share
+		 * @param share2 second share
+		 * @return 1 if share2 should come before share1, -1
+		 * if share1 should come before share2, 0 if they
+		 * are identical.
+		 */
 		_shareCompare: function(share1, share2) {
 			var result = SharedFileList._fileInfoCompare(share1, share2);
 			if (result === 0) {
@@ -62,28 +74,42 @@
 				t('files_sharing', 'Unkown'));
 			$tr.find('td.date').before($sharedWith).before($shareType);
 			$tr.find('td.filename input:checkbox').remove();
+			$tr.attr('data-path', fileData.path);
 			return $tr;
 		},
 
+		/**
+		 * Set whether the list should contain outgoing shares
+		 * or incoming shares.
+		 *
+		 * @param state true for incoming shares, false otherwise
+		 */
+		setSharedWithUser: function(state) {
+			this._sharedWithUser = !!state;
+		},
+
 		reload: function() {
-			FileList.showMask();
-			if (FileList._reloadCall) {
-				FileList._reloadCall.abort();
+			var self = this;
+			this.showMask();
+			if (this._reloadCall) {
+				this._reloadCall.abort();
 			}
-			FileList._reloadCall = $.ajax({
+			this._reloadCall = $.ajax({
 				url: OC.linkToOCS('apps/files_sharing/api/v1') + 'shares',
+				/* jshint camelcase: false */
 				data: {
-					format: 'json'
+					format: 'json',
+					shared_with_me: !!this._sharedWithUser
 				},
 				type: 'GET',
 				beforeSend: function(xhr) {
 					xhr.setRequestHeader('OCS-APIREQUEST', 'true');
 				},
 				error: function(result) {
-					FileList.reloadCallback(result);
+					self.reloadCallback(result);
 				},
 				success: function(result) {
-					FileList.reloadCallback(result);
+					self.reloadCallback(result);
 				}
 			});
 		},
@@ -92,6 +118,9 @@
 			delete this._reloadCall;
 			this.hideMask();
 
+			this.$el.find('#headerSharedWith').text(
+				t('files_sharing', this._sharedWithUser ? 'Shared by' : 'Shared with')
+			);
 			if (result.ocs && result.ocs.data) {
 				this.setFiles(this._makeFilesFromShares(result.ocs.data));
 			}
@@ -107,13 +136,13 @@
 		 * @return array of file info maps
 		 */
 		_makeFilesFromShares: function(data) {
+			var self = this;
 			// OCS API uses non-camelcased names
 			/* jshint camelcase: false */
+			console.log(data);
 			var files = _.map(data, function(share) {
 				var file = {
 					id: share.id,
-					name: OC.basename(share.path),
-					path: OC.dirname(share.path),
 					mtime: share.stime * 1000,
 					permissions: share.permissions
 				};
@@ -130,7 +159,16 @@
 				}
 				file.shareType = share.share_type;
 				file.shareWith = share.share_with;
-				file.shareWithDisplayName = share.share_with_displayname;
+				if (self._sharedWithUser) {
+					file.shareWithDisplayName = share.displayname_owner;
+					file.name = OC.basename(share.file_target);
+					file.path = OC.dirname(share.file_target);
+				}
+				else {
+					file.shareWithDisplayName = share.share_with_displayname;
+					file.name = OC.basename(share.path);
+					file.path = OC.dirname(share.path);
+				}
 				return file;
 			});
 			return files.sort(this._shareCompare);
@@ -138,5 +176,8 @@
 	});
 
 	window.SharedFileList = SharedFileList;
+
+	// HACK: since FileList.initialize() is always called, replace that class for now
+	window.FileList = SharedFileList;
 })();
 
