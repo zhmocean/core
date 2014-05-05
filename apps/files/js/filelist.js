@@ -97,6 +97,15 @@ window.FileList = {
 		this.$el.find('#select_all').click(_.bind(this._onClickSelectAll, this));
 		this.$el.find('.download').click(_.bind(this._onClickDownloadSelected, this));
 		this.$el.find('.delete-selected').click(_.bind(this._onClickDeleteSelected, this));
+
+		this.$el.trigger(jQuery.Event("initialized"));
+	},
+
+	/**
+	 * Renders the file list table
+	 */
+	render: function() {
+		// TODO: render the table here instead of in PHP
 	},
 
 	/**
