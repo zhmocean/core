@@ -121,6 +121,12 @@ class Updater extends BasicEmitter {
 			// This is added to prevent host header poisoning
 			\OC_Config::setValue('trusted_domains', \OC_Config::getValue('trusted_domains', array(\OC_Request::serverHost()))); 
 		}
+
+		if (version_compare($installedVersion, '6.90.0.3', '<')) {
+			// Drop permissions table - easiest approach because this table will be filled up again
+			\OC_DB::executeAudited('delete from `*PREFIX*permissions`');
+		}
+
 		/*
 		 * STOP CONFIG CHANGES FOR OLDER VERSIONS
 		 */
