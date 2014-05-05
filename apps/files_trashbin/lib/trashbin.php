@@ -660,12 +660,7 @@ class Trashbin {
 	 */
 	public static function deleteUser($uid) {
 		$query = \OC_DB::prepare('DELETE FROM `*PREFIX*files_trash` WHERE `user`=?');
-		$result = $query->execute(array($uid));
-		if ($result) {
-			$query = \OC_DB::prepare('DELETE FROM `*PREFIX*files_trashsize` WHERE `user`=?');
-			return $query->execute(array($uid));
-		}
-		return false;
+		return $query->execute(array($uid));
 	}
 
 	/**

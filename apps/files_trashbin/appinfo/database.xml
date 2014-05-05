@@ -98,40 +98,4 @@
 
  </table>
 
- <table>
-
-  <name>*dbprefix*files_trashsize</name>
-
-  <declaration>
-
-   <field>
-    <name>user</name>
-    <type>text</type>
-    <default></default>
-    <notnull>true</notnull>
-    <length>64</length>
-   </field>
-
-   <field>
-    <name>size</name>
-    <type>text</type>
-    <default></default>
-    <notnull>true</notnull>
-    <length>50</length>
-   </field>
-
-	  <index>
-		  <name>user_index</name>
-		  <primary>true</primary>
-		  <field>
-			  <name>user</name>
-			  <sorting>ascending</sorting>
-		  </field>
-	  </index>
-
-
-  </declaration>
-
- </table>
-
 </database>
