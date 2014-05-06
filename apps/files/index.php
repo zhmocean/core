@@ -43,8 +43,12 @@ $dir = \OC\Files\Filesystem::normalizePath($dir);
 $dirInfo = \OC\Files\Filesystem::getFileInfo($dir, false);
 // Redirect if directory does not exist
 if (!$dirInfo || !$dirInfo->getType() === 'dir') {
-	header('Location: ' . OCP\Util::getScriptName() . '');
-	exit();
+	if ($dir === '/') {
+		throw new Exception('Could not get home folder info. Contact your administrator.');
+	} else {
+		header('Location: ' . OCP\Util::getScriptName() . '');
+		exit();
+	}
 }
 
 $isIE8 = false;
