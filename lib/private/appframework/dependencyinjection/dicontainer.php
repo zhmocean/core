@@ -32,6 +32,7 @@ use OC\AppFramework\Middleware\MiddlewareDispatcher;
 use OC\AppFramework\Middleware\Security\SecurityMiddleware;
 use OC\AppFramework\Utility\SimpleContainer;
 use OC\AppFramework\Utility\TimeFactory;
+use OC\AppFramework\Utility\ControllerMethodReflector;
 use OCP\AppFramework\IApi;
 use OCP\AppFramework\IAppContainer;
 use OCP\AppFramework\Middleware;
@@ -80,7 +81,11 @@ class DIContainer extends SimpleContainer implements IAppContainer{
 		});
 
 		$this['Dispatcher'] = $this->share(function($c) {
-			return new Dispatcher($c['Protocol'], $c['MiddlewareDispatcher']);
+			return new Dispatcher(
+				$c['Protocol'], 
+				$c['MiddlewareDispatcher'], 
+				$c['ControllerMethodReflector']
+			);
 		});
 
 
@@ -89,7 +94,11 @@ class DIContainer extends SimpleContainer implements IAppContainer{
 		 */
 		$app = $this;
 		$this['SecurityMiddleware'] = $this->share(function($c) use ($app){
-			return new SecurityMiddleware($app, $c['Request']);
+			return new SecurityMiddleware(
+				$app, 
+				$c['Request'], 
+				$c['ControllerMethodReflector']
+			);
 		});
 
 		$middleWares = &$this->middleWares;
@@ -112,6 +121,9 @@ class DIContainer extends SimpleContainer implements IAppContainer{
 			return new TimeFactory();
 		});
 
+		$this['ControllerMethodReflector'] = $this->share(function($c) {
+			return new ControllerMethodReflector();
+		});
 
 	}
 
