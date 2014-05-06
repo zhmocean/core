@@ -158,6 +158,9 @@ class Server extends SimpleContainer implements IServerContainer {
 		$this->registerService('AvatarManager', function($c) {
 			return new AvatarManager();
 		});
+		$this->registerService('Logger', function($c) {
+			return new Log();
+		});
 		$this->registerService('JobList', function ($c) {
 			/**
 			 * @var Server $c
@@ -390,6 +393,15 @@ class Server extends SimpleContainer implements IServerContainer {
 	 */
 	function getJobList(){
 		return $this->query('JobList');
+	}
+
+	/**
+	 * Returns a logger instance
+	 *
+	 * @return \OCP\ILog
+	 */
+	function getLogger(){
+		return $this->query('Logger');
 	}
 
 	/**

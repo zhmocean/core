@@ -8,6 +8,8 @@
 
 namespace OC;
 
+use \OCP\ILog;
+
 /**
  * logging utilities
  *
@@ -18,8 +20,15 @@ namespace OC;
  * MonoLog is an example implementing this interface.
  */
 
-class Log {
+class Log implements ILog {
+	
 	private $logClass;
+
+	public function __construct() {
+		$this->logClass = 'OC_Log_'.ucfirst(\OC_Config::getValue('log_type', 'owncloud'));
+		call_user_func(array($this->logClass, 'init'));
+	}
+
 
 	/**
 	 * System is unusable.
@@ -112,10 +121,6 @@ class Log {
 		$this->log(\OC_Log::DEBUG, $message, $context);
 	}
 
-	public function __construct() {
-		$this->logClass = 'OC_Log_'.ucfirst(\OC_Config::getValue('log_type', 'owncloud'));
-		call_user_func(array($this->logClass, 'init'));
-	}
 
 	/**
 	 * Logs with an arbitrary level.
