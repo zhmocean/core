@@ -32,11 +32,35 @@ class OC_Share_Backend_File implements OCP\Share_Backend_File_Dependent {
 
 	private $path;
 
+	/**
+	 * Extract the base name of the mount point from the given storage id.
+	 *
+	 * @param int $storageId ID of the storage from which to look up the name
+	 * @return string base name of the mount point or null if none found
+	 */
+	private static function getNameFromMountPoint($storageId) {
+		$mountManager = \OC\Files\Filesystem::getMountManager();
+		$mount = $mountManager->findByNumericId($storageId);
+		if (count($mount) === 0) {
+			return null;
+		}
+		return basename($mount[0]->getMountPoint());
+	}
+
 	public function isValidSource($itemSource, $uidOwner) {
-		$query = \OC_DB::prepare('SELECT `name` FROM `*PREFIX*filecache` WHERE `fileid` = ?');
+		$query = \OC_DB::prepare('SELECT `name`, `storage`, `parent` FROM `*PREFIX*filecache` WHERE `fileid` = ?');
 		$result = $query->execute(array($itemSource));
 		if ($row = $result->fetchRow()) {
+			// FIXME: not the right place to set attributes !!!
 			$this->path = $row['name'];
+			// root of storage ?
+			if ((int)($row['parent']) === -1) {
+				// use the name of the mount point
+				$this->path = self::getNameFromMountPoint((int)$row['storage']);
+				if ($this->path === null) {
+					return false;
+				}
+			}
 			return true;
 		}
 		return false;
