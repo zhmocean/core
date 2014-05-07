@@ -22,11 +22,21 @@ use \OCP\ILog;
 
 class Log implements ILog {
 	
-	private $logClass;
+	private $logger;
 
-	public function __construct() {
-		$this->logClass = 'OC_Log_'.ucfirst(\OC_Config::getValue('log_type', 'owncloud'));
-		call_user_func(array($this->logClass, 'init'));
+	/**
+	 * @param string $logger The logger that should be used
+	 */
+	public function __construct($logger=null) {
+		// FIXME: Add this for backwards compability, should be fixed at some
+		// point probably
+		if($logger === null) {
+			$this->logger = 'OC_Log_'.ucfirst(\OC_Config::getValue('log_type', 'owncloud'));
+			call_user_func(array($this->logger, 'init'));
+		} else {
+			$this->logger = $logger;
+		}
+
 	}
 
 
@@ -135,7 +145,7 @@ class Log implements ILog {
 		} else {
 			$app = 'no app in context';
 		}
-		$logClass=$this->logClass;
-		$logClass::write($app, $message, $level);
+		$logger=$this->logger;
+		$logger::write($app, $message, $level);
 	}
 }

@@ -159,7 +159,11 @@ class Server extends SimpleContainer implements IServerContainer {
 			return new AvatarManager();
 		});
 		$this->registerService('Logger', function($c) {
-			return new Log();
+			$logClass = $c->query('AllConfig')->getSystemValue('log_type', 'owncloud');
+			$logger = 'OC_Log_' . ucfirst($logClass);
+			call_user_func(array($logger, 'init'));
+
+			return new Log($logger);
 		});
 		$this->registerService('JobList', function ($c) {
 			/**
